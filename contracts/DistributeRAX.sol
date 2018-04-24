@@ -13,7 +13,7 @@ contract DistributeRAX is DistributeBase {
 
   function distributeProfit(DistributableToken _token) external {
     uint256 _totalProfit = raxToken.allowance(msg.sender, this);
-    super.distributeProfit(_token, _totalProfit);
+    super._distributeProfit(_token, _totalProfit);
   }
 
   function _approveIncomes(DistributableToken _token, address[] _holders, uint256[] _profits) internal {

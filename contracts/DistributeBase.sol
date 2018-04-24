@@ -28,7 +28,7 @@ contract DistributeBase is Ownable {
    * @param _token Address of token contract which its token holders will be distribute profits.
    * @param _totalProfit Total profit to distribute to all holders.
    */
-  function distributeProfit(DistributableToken _token, uint256 _totalProfit) {
+  function _distributeProfit(DistributableToken _token, uint256 _totalProfit) internal {
     require(_totalProfit > 0);
 
     uint256 _holdersCount = _token.getTheNumberOfHolders();

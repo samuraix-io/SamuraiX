@@ -8,7 +8,7 @@ contract DistributeEther is DistributeBase {
 
   function distributeProfit(DistributableToken _token) external payable {
     uint256 _totalProfit = msg.value;
-    super.distributeProfit(_token, _totalProfit);
+    super._distributeProfit(_token, _totalProfit);
   }
 
   function doTransfer(address _beneficiary) public onlyOwner {
