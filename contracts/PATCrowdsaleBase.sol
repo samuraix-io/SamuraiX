@@ -46,14 +46,12 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     uint256 _startTime,
     uint256 _endTime,
     address _ethWallet,
-    uint256 _minCap,
-    uint256 _ethPATRate
+    uint256 _minCap
   )
   Ownable()
   Pausable()
   Contactable()
   HasNoContracts()
-  //Crowdsale(_ethPATRate.ethPATRateToWei(), _ethWallet, _token)
   Crowdsale(1, _ethWallet, _token)
   TimedCrowdsale(_startTime, _endTime)
   RefundableExCrowdsale(_raxToken, _minCap)
@@ -122,10 +120,6 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
 
   // sub-classes must override to control tokens sales cap
   function tokensRemaining() view public returns (uint256);
-
-  function getVaultAddress() public view returns(address) {
-    return address(vault);
-  }
 
   /*
    * internal functions

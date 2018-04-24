@@ -13,7 +13,7 @@ contract PATCrowdsaleEther is PATCrowdsaleBase {
   function buyTokensUsingEther(address _beneficiary) public payable whenNotPaused {
     uint256 _weiAmount = msg.value;
     uint256 _tokens = _buyTokens(_beneficiary, _weiAmount);
-    _forwardFunds();
+    _forwardFundsEther();
 
     emit TokenPurchase(msg.sender, _beneficiary, _weiAmount, _tokens);
   }

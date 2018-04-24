@@ -42,8 +42,7 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       _startTime,
       _endTime,
       _ethWallet,
-      _minCap,
-      _ethPATRate
+      _minCap
     ) public {
       require(_minCap <= _maxCap);
 

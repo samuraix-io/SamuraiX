@@ -10,7 +10,7 @@ contract PATCrowdsaleRAX is PATCrowdsaleBase {
     uint256 _raxAmount = raxToken.allowance(msg.sender, this);
     uint256 _weiAmount = raxToWei(_raxAmount);
     uint256 _tokens = _buyTokens(_beneficiary, _weiAmount);
-    _forwardFundsRAX(_beneficiary, _raxAmount);
+    _forwardFundsRAX(_raxAmount);
     emit TokenPurchaseRAX(msg.sender, _beneficiary, _raxAmount, _tokens);
   }
 }
