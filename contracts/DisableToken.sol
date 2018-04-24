@@ -2,19 +2,31 @@ pragma solidity ^0.4.20;
 
 import './ManageableToken.sol';
 
-
+/**
+ * @title Disable token.
+ * @dev ManageableToken modified with disable transactions.
+ **/
 contract DisableToken is ManageableToken {
   bool enable = true;
 
+  /**
+   * @dev Throws if called when this token is disabled.
+   */
   modifier whenEnable {
     require(enable == true);
     _;
   }
 
+  /**
+   * @dev Disable this token.
+   */
   function disableToken() public onlyManager {
     enable = false;
   }
 
+  /**
+   * @dev Enable this token.
+   */
   function enableToken() public onlyManager {
     enable = true;
   }
