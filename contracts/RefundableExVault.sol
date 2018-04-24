@@ -22,10 +22,10 @@ contract RefundableExVault is RefundVault {
   /*
    * @param investor Investor address
    */
-  function depositRAX(address _sender, address _investor, uint256 _amount) onlyOwner public {
+  function depositRAX(address _sender, uint256 _amount) onlyOwner public {
     require(state == State.Active);
 
-    depositedRAX[_investor] = depositedRAX[_investor].add(_amount);
+    depositedRAX[_sender] = depositedRAX[_sender].add(_amount);
     raxToken.transferFrom(_sender, this, _amount);
   }
 

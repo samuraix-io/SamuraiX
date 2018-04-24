@@ -12,7 +12,7 @@ import "./RefundableExVault.sol";
  */
 contract RefundableExCrowdsale is RefundableCrowdsale {
   // refund vault used to hold funds while crowdsale is running
-  RefundableExVault public vault;
+  RefundableExVault public exVault;
 
   /*
    * @dev Constructor, creates RefundVault.
@@ -21,10 +21,18 @@ contract RefundableExCrowdsale is RefundableCrowdsale {
   function RefundableExCrowdsale(RAXToken _token, uint256 _goal)
   RefundableCrowdsale(_goal)
   public {
-    vault = new RefundableExVault(_token, wallet);
+    exVault = new RefundableExVault(_token, wallet);
   }
 
-  function _forwardFundsRAX(address _investor, uint256 _amount) internal {
-    vault.depositRAX(msg.sender, _investor, _amount);
+  function getVaultAddress() public view returns(address) {
+    return address(exVault);
+  }
+
+  function _forwardFundsRAX(uint256 _amount) internal {
+    exVault.depositRAX(msg.sender, _amount);
+  }
+
+  function _forwardFundsEther() internal {
+    exVault.deposit.value(msg.value)(msg.sender);
   }
 }
