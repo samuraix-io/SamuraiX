@@ -35,6 +35,41 @@ contract RefundableExCrowdsale is RefundableCrowdsale {
     return address(exVault);
   }
 
+  /**
+   * @dev Investors can claim refunds here if crowdsale is unsuccessful.
+   */
+  function claimRefund() public {
+    refund(msg.sender);
+  }
+
+  /**
+   * @dev Owner can force refunding to investor if crowdsale is unsuccessful.
+   * @param _investor Investor address.
+   */
+  function refund(address _investor) onlyOwner public {
+    require(isFinalized);
+    require(!goalReached());
+
+    var (_weiAmount, _raxAmount) = exVault.getBalance(_investor);
+    if (_weiAmount > 0) {
+      exVault.refund(_investor);
+    }
+    if (_raxAmount > 0) {
+      exVault.refundRAX(_investor);
+    }
+  }
+
+  /**
+   * @dev vault finalization task, called when owner calls finalize()
+   */
+  function finalization() internal {
+    if (goalReached()) {
+      exVault.close();
+    } else {
+      exVault.enableRefunds();
+    }
+  }
+
   /*
    * @dev Forwards RAX tokens from the investor to the vault.
    * @param _amount Amount of tokens to forward.

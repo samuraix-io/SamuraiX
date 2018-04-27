@@ -43,6 +43,16 @@ contract RefundableExVault is RefundVault {
   }
 
   /**
+   * @dev Gets balance of a specified investor.
+   * @param _investor Investor address.
+   * @return _wei Wei amount.
+   * @return _rax RAX amount.
+   */
+  function getBalance(address _investor) onlyOwner view public returns(uint256 _wei, uint256 _rax) {
+    return (deposited[_investor], depositedRAX[_investor]);
+  }
+
+  /**
    * @dev Closes this vault and forwards the money if crowdsale is successful.
    */
   function close() onlyOwner public {
@@ -59,6 +69,8 @@ contract RefundableExVault is RefundVault {
    * @param _investor Investor address.
    */
   function refundRAX(address _investor) public {
+    require(state == State.Refunding);
+
     uint256 _value = depositedRAX[_investor];
     depositedRAX[_investor] = 0;
     if (_value > 0) {
