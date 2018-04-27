@@ -3,7 +3,8 @@ pragma solidity ^0.4.11;
 import './PATCrowdsaleRAX.sol';
 import './PATCrowdsaleEther.sol';
 import './PATToken.sol';
-import './ManageFees.sol';
+import './ManageListingFee.sol';
+import './ManageReserveFunds.sol';
 
 
 /*
@@ -24,14 +25,16 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     uint256 public ethRAXRate;
     uint8 listingFeeRate;
     uint8 reserveFundRate;
-    ManageFees manageFees;
-    bool tokenFeesMinted = false;
+    ManageListingFee manageListingFee;
+    ManageReserveFunds manageReserveFunds;
+    bool managedTokensMinted = false;
 
     function PATSale(
       RegisteredUsers _regUsers,
       RAXToken _raxToken,
       MintableToken _token,
-      ManageFees _manageFees,
+      ManageListingFee _manageListingFee,
+      ManageReserveFunds _manageReserveFunds,
       uint256 _startTime,
       uint256 _endTime,
       address _ethWallet,
@@ -59,21 +62,26 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       reserveFundRate = _reserveFundRate;
       ethPATRate = _ethPATRate;
       ethRAXRate = _ethRAXRate;
-      manageFees = _manageFees;
+
+      manageListingFee = _manageListingFee;
+      manageReserveFunds = _manageReserveFunds;
 
       _checkRates();
     }
 
-    function mintTokenFees() onlyOwner external {
-      require(!tokenFeesMinted);
-      tokenFeesMinted = true;
+    function mintManagedTokens() onlyOwner external {
+      require(!managedTokensMinted);
+      managedTokensMinted = true;
 
       uint256 _totalTokens = getTokenContract().getTotalTokens();
       uint256 _listingFeeTokens = _totalTokens.mul(listingFeeRate).div(100);
       uint256 _reserveFundTokens = _totalTokens.mul(reserveFundRate).div(100);
-      uint256 _amount = _listingFeeTokens + _reserveFundTokens;
-      getTokenContract().mint(manageFees, _amount);
-      manageFees.setTokenFees(getTokenContract(), _listingFeeTokens, _reserveFundTokens);
+
+      getTokenContract().mint(manageListingFee, _listingFeeTokens);
+      manageListingFee.setTokens(getTokenContract(), _listingFeeTokens);
+
+      getTokenContract().mint(manageReserveFunds, _reserveFundTokens);
+      manageReserveFunds.setTokens(getTokenContract(), _reserveFundTokens);
     }
 
     function setMinPurchaseAmt(uint256 _wei) onlyOwner public {
