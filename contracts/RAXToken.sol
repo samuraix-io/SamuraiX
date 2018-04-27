@@ -7,14 +7,17 @@ import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
 import './DistributableToken.sol';
 
 
-/*
- * RAXToken is a ERC20 token that
- *  - caps total number at 100 million tokens
- *  - can pause and unpause token transfer (and authorization) actions
- *  - mints new tokens when purchased (rather than transferring tokens pre-granted to a holding account)
- *  - attempts to reject ERC20 token transfers to itself and allows token transfer out
- *  - attempts to reject ether sent and allows any ether held to be transferred out
- */
+/**
+ * @title RAX token.
+ * @dev RAX is a ERC20 token that:
+ *  - caps total number at 10 billion tokens.
+ *  - can pause and unpause token transfer (and authorization) actions.
+ *  - mints new tokens when purchased (rather than transferring tokens pre-granted to a holding account).
+ *  - token holders can be distributed profit from asset manager.
+ *  - attempts to reject token transfer to any unregistered users.
+ *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
+ *  - attempts to reject ether sent and allows any ether held to be transferred out.
+ **/
 contract RAXToken is Contactable, HasNoTokens, HasNoEther, PausableToken, DistributableToken {
     string public constant name = "RAXToken";
     string public constant symbol = "RAX";
@@ -24,6 +27,9 @@ contract RAXToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Distri
     uint256 public constant BILLION_TOKENS = (10**9) * ONE_TOKENS;
     uint256 public constant TOTAL_TOKENS = 10 * BILLION_TOKENS;
 
+    /**
+     * @param _regUsers A contract to check whether an account is registered or not.
+     */
     function RAXToken(RegisteredUsers _regUsers)
     Contactable()
     HasNoTokens()
@@ -35,22 +41,32 @@ contract RAXToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Distri
         contactInformation = 'https://token.samuraix.io/';
     }
 
-    // cap minting so that totalSupply <= TOTAL_TOKENS
-    function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+    /**
+     * @dev Mints tokens to a beneficiary address. Capped by TOTAL_TOKENS.
+     * @param _to Who got the tokens.
+     * @param _amount Amount of tokens.
+     */
+    function mint(address _to, uint256 _amount) onlyOwner canMint public returns(bool) {
         require(totalSupply_.add(_amount) <= TOTAL_TOKENS);
         return super.mint(_to, _amount);
     }
 
-    /*
-    * @dev Allows the current owner to transfer control of the contract to a newOwner.
-    * @param newOwner The address to transfer ownership to.
-    */
-    function transferOwnership(address newOwner) onlyOwner public {
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a new owner.
+     * @param _newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address _newOwner) onlyOwner public {
         // do not allow self ownership
-        require(newOwner != address(this));
-        super.transferOwnership(newOwner);
+        require(_newOwner != address(this));
+        super.transferOwnership(_newOwner);
     }
 
+    /**
+     * @dev Calculates profit to distribute to a specified token holder.
+     * @param _totalProfit Total profit.
+     * @param _holder Token holder address.
+     * @return Profit value relevant to the token holder.
+     */
     function calculateProfit(uint256 _totalProfit, address _holder) public view returns(uint256) {
       require(_totalProfit > 0);
       require(isHolder(_holder));
