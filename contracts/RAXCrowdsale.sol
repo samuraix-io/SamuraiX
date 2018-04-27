@@ -70,7 +70,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
         _preValidatePurchase(_beneficiary, weiAmount);
 
         // calculate token amount to be created
-        uint256 tokens = applyExchangeRate(weiAmount);
+        uint256 tokens = _applyExchangeRate(weiAmount);
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
