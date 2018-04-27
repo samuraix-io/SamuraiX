@@ -4,7 +4,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/PausableToken.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoEther.sol';
 import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
-import './DisableToken.sol';
+import './ManageableToken.sol';
 
 
 /*
@@ -16,7 +16,7 @@ import './DisableToken.sol';
  *  - attempts to reject ether sent and allows any ether held to be transferred out
  */
  // Destructible
-contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, DisableToken {
+contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, ManageableToken {
   string public name;
   string public symbol;
 
@@ -34,10 +34,7 @@ contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Disabl
     string _fixedDocsLink,
     string _fixedDocsHash,
     string _varDocsLink,
-    string _varDocsHash,
-    address _samuraiXWallet,
-    uint8 _listingFeeRate,
-    uint8 _reserveFundRate
+    string _varDocsHash
   )
   Ownable()
   Contactable()
@@ -45,11 +42,10 @@ contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Disabl
   HasNoEther()
   MintableToken()
   PausableToken()
-  ManageableToken(_regUsers, _id, _samuraiXWallet, _managers, _fixedDocsLink,
-                  _fixedDocsHash, _varDocsLink, _varDocsHash, _listingFeeRate, _reserveFundRate)
+  DistributableToken(_regUsers, _id)
+  AssetInfo(_managers, _fixedDocsLink, _fixedDocsHash, _varDocsLink, _varDocsHash)
   {
     require(_id > 1);
-    require(_samuraiXWallet != 0x0);
 
     name = _name;
     symbol = _symbol;
