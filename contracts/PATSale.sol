@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import './PATCrowdsaleRAX.sol';
 import './PATCrowdsaleEther.sol';
 import './PATToken.sol';
-import './RegisteredUsers.sol';
+import './ManageFees.sol';
 
 
 /*
@@ -22,18 +22,25 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     uint256 public minPurchaseAmt = 100 finney;
     uint256 public ethPATRate;
     uint256 public ethRAXRate;
+    uint8 listingFeeRate;
+    uint8 reserveFundRate;
+    ManageFees manageFees;
+    bool tokenFeesMinted = false;
 
     function PATSale(
       RegisteredUsers _regUsers,
       RAXToken _raxToken,
       MintableToken _token,
+      ManageFees _manageFees,
       uint256 _startTime,
       uint256 _endTime,
       address _ethWallet,
       uint256 _minCap,
       uint256 _maxCap,
       uint256 _ethPATRate,
-      uint256 _ethRAXRate
+      uint256 _ethRAXRate,
+      uint8 _listingFeeRate,
+      uint8 _reserveFundRate
     )
     PATCrowdsaleBase(
       _regUsers,
@@ -43,20 +50,30 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       _endTime,
       _ethWallet,
       _minCap.tokenToWei(_ethPATRate))
-    ) public {
+    {
       require(_minCap <= _maxCap);
-
-      uint256 _totalTokens = getTokenContract().getTotalTokens();
-      uint256 _saleRate = (_maxCap.mul(100)).div(_totalTokens);
-
-      uint256 _totalPer = _saleRate.add(uint256(getTokenContract().getListingFeeRate()));
-      _totalPer = _totalPer.add(uint256(getTokenContract().getReserveFundRate()));
-      require(100 == _totalPer);
 
       maxCap = _maxCap;
       minCap = _minCap;
+      listingFeeRate = _listingFeeRate;
+      reserveFundRate = _reserveFundRate;
       ethPATRate = _ethPATRate;
       ethRAXRate = _ethRAXRate;
+      manageFees = _manageFees;
+
+      _checkRates();
+    }
+
+    function mintTokenFees() onlyOwner external {
+      require(!tokenFeesMinted);
+      tokenFeesMinted = true;
+
+      uint256 _totalTokens = getTokenContract().getTotalTokens();
+      uint256 _listingFeeTokens = _totalTokens.mul(listingFeeRate).div(100);
+      uint256 _reserveFundTokens = _totalTokens.mul(reserveFundRate).div(100);
+      uint256 _amount = _listingFeeTokens + _reserveFundTokens;
+      getTokenContract().mint(manageFees, _amount);
+      manageFees.setTokenFees(getTokenContract(), _listingFeeTokens, _reserveFundTokens);
     }
 
     function setMinPurchaseAmt(uint256 _wei) onlyOwner public {
@@ -71,6 +88,14 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     /*
      * internal functions
      */
+
+    function _checkRates() view internal {
+      uint256 _totalTokens = getTokenContract().getTotalTokens();
+      uint256 _saleRate = (maxCap.mul(100)).div(_totalTokens);
+      uint8 _totalPer = uint8(_saleRate) + listingFeeRate + reserveFundRate;
+      require(uint8(100) == _totalPer);
+    }
+
     function _weiToPAT(uint256 _wei) view internal returns(uint256) {
       require(_wei >= minPurchaseAmt);
 
