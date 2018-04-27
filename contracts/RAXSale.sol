@@ -17,8 +17,8 @@ contract RAXSale is RAXCrowdsale {
     uint256 public minPurchaseAmt = 100 finney;
     uint256 public ethRAXRate;
 
-    function RAXSale(MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet, uint256 _ethRAXRate)
-    RAXCrowdsale(_token, _startTime, _endTime, _ethWallet)
+    function RAXSale(RegisteredUsers _regUsers, MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet, uint256 _ethRAXRate)
+    RAXCrowdsale(_regUsers, _token, _startTime, _endTime, _ethWallet)
     {
         ethRAXRate = _ethRAXRate;
     }

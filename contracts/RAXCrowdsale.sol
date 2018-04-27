@@ -24,9 +24,10 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
     using SafeMath for uint256;
 
     uint256 public tokensSold = 0;
+    RegisteredUsers public regUsers;
 
     // ignore the Crowdsale.rate and dynamically compute rate based on other factors (e.g. purchase amount, time, etc)
-    function RAXCrowdsale(MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet)
+    function RAXCrowdsale(RegisteredUsers _regUsers, MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet)
     Ownable()
     Pausable()
     Contactable()
@@ -38,6 +39,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
     {
       // deployment must set token.owner = RAXCrowdsale.address to allow minting
       token = _token;
+      regUsers = _regUsers;
       contactInformation = 'https://token.samuraix.io/';
     }
 
