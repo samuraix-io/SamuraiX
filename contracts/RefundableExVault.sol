@@ -16,6 +16,13 @@ contract RefundableExVault is RefundVault {
 
   RAXToken raxToken;
 
+  /**
+   * Event for RAX refunded logging.
+   * @param _beneficiary Who got the tokens.
+   * @param _amount Amount of tokens.
+   */
+  event RAXRefunded(address indexed _beneficiary, uint256 _amount);
+
   /*
    * @param _token Address of RAX token contract.
    * @param _wallet Address for forwarding the money if the crowdsale is successful.
@@ -29,11 +36,10 @@ contract RefundableExVault is RefundVault {
    * @dev Stores RAX tokens while the crowdsale is in progress.
    * @param _investor Investor address.
    */
-  function depositRAX(address _sender, uint256 _amount) onlyOwner public {
+  function depositRAX(address _investor, uint256 _amount) onlyOwner public {
     require(state == State.Active);
 
-    depositedRAX[_sender] = depositedRAX[_sender].add(_amount);
-    raxToken.transferFrom(_sender, this, _amount);
+    depositedRAX[_investor] = depositedRAX[_investor].add(_amount);
   }
 
   /**
@@ -43,20 +49,21 @@ contract RefundableExVault is RefundVault {
     super.close();
 
     uint256 _amount = raxToken.balanceOf(this);
-    raxToken.transfer(wallet, _amount);
+    if (_amount > 0) {
+      raxToken.transfer(wallet, _amount);
+    }
   }
 
   /**
-   * @dev Refunds the money if crowdsale fails.
+   * @dev Refunds RAX tokens if crowdsale fails.
    * @param _investor Investor address.
    */
-  function refund(address _investor) public {
-    super.refund(_investor);
-
+  function refundRAX(address _investor) public {
     uint256 _value = depositedRAX[_investor];
     depositedRAX[_investor] = 0;
     if (_value > 0) {
       raxToken.transfer(_investor, _value);
+      RAXRefunded(_investor, _value);
     }
   }
 }

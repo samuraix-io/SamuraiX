@@ -42,7 +42,7 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       _startTime,
       _endTime,
       _ethWallet,
-      _minCap
+      _minCap.tokenToWei(_ethPATRate))
     ) public {
       require(_minCap <= _maxCap);
 
@@ -71,7 +71,7 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     /*
      * internal functions
      */
-    function weiToPAT(uint256 _wei) view internal returns (uint256) {
+    function _weiToPAT(uint256 _wei) view internal returns(uint256) {
       require(_wei >= minPurchaseAmt);
 
       uint256 _tokens = _wei.weiToToken(ethPATRate);
@@ -89,7 +89,7 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       return _tokens;
     }
 
-    function raxToWei(uint256 _amount) view internal returns(uint256) {
+    function _raxToWei(uint256 _amount) view internal returns(uint256) {
       require(_amount > 0);
 
       return _amount.tokenToWei(ethRAXRate);

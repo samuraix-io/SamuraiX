@@ -5,7 +5,6 @@ import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import './CoinExchange.sol';
 import './PATToken.sol';
-import './TokenHolders.sol';
 import './RAXToken.sol';
 import './RegisteredUsers.sol';
 import './RefundableExCrowdsale.sol';
@@ -29,15 +28,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
 
   uint256 public tokensSold = 0;
   RegisteredUsers public regUsers;
-  RAXToken public raxToken;
 
-  /*
-   * Event for token purchase logging
-   * @param purchaser who paid for the tokens
-   * @param beneficiary who got the tokens
-   * @param value the number of RAX tokens paid for purchase
-   * @param amount amount of PAT tokens purchased
-   */
   // ignore the Crowdsale.rate and dynamically compute rate based on other factors (e.g. purchase amount, time, etc)
   function PATCrowdsaleBase(
     RegisteredUsers _regUsers,
@@ -46,7 +37,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     uint256 _startTime,
     uint256 _endTime,
     address _ethWallet,
-    uint256 _minCap
+    uint256 _weiAmountGoal
   )
   Ownable()
   Pausable()
@@ -54,11 +45,10 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
   HasNoContracts()
   Crowdsale(1, _ethWallet, _token)
   TimedCrowdsale(_startTime, _endTime)
-  RefundableExCrowdsale(_raxToken, _minCap)
+  RefundableExCrowdsale(_raxToken, _weiAmountGoal)
   {
     // deployment must set token.owner = PATCrowdsale.address to allow minting
     regUsers = _regUsers;
-    raxToken = _raxToken;
     contactInformation = 'https://token.samuraix.io/';
   }
 
@@ -84,7 +74,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     _preValidatePurchase(_beneficiary, _weiAmount);
 
     // calculate token amount to be created
-    uint256 _tokens = weiToPAT(_weiAmount);
+    uint256 _tokens = _weiToPAT(_weiAmount);
     require(_tokens > 0);
 
     // update state
@@ -143,7 +133,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
   }
 
   // sub-classes must override to customize token-per-wei exchange rate
-  function weiToPAT(uint256 _wei) view internal returns (uint256);
+  function _weiToPAT(uint256 _wei) view internal returns(uint256);
 
-  function raxToWei(uint256 _amount) view internal returns(uint256);
+  function _raxToWei(uint256 _amount) view internal returns(uint256);
 }
