@@ -26,13 +26,13 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
     uint256 public tokensSold = 0;
 
     // ignore the Crowdsale.rate and dynamically compute rate based on other factors (e.g. purchase amount, time, etc)
-    function RAXCrowdsale(MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet, uint256 _rate)
+    function RAXCrowdsale(MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet)
     Ownable()
     Pausable()
     Contactable()
     HasNoTokens()
     HasNoContracts()
-    Crowdsale(_rate, _ethWallet, _token)
+    Crowdsale(1, _ethWallet, _token)
     FinalizableCrowdsale()
     TimedCrowdsale(_startTime, _endTime)
     {
@@ -50,6 +50,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
     // can control the token-per-wei exchange rate dynamically
     function buyTokens(address _beneficiary) public payable whenNotPaused {
         require(_beneficiary != 0x0);
+        require(regUsers.isUserRegistered(_beneficiary));
 
         uint256 weiAmount = msg.value;
         _preValidatePurchase(_beneficiary, weiAmount);
@@ -63,7 +64,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
 
         RAXToken(token).mint(_beneficiary, tokens);
         TokenPurchase(msg.sender, _beneficiary, weiAmount, tokens);
-
+        RAXToken(token).addHolder(_beneficiary);
         _forwardFunds();
     }
 
