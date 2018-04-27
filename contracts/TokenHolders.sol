@@ -7,7 +7,9 @@ contract TokenHolders is Ownable {
   mapping(address => bool) holderCheck;
   address[] holders;
 
-  function addHolder(address _holder) public onlyOwner returns(bool) {
+  function addHolder(address _holder) public returns(bool) {
+    require(msg.sender == address(this) || msg.sender == owner);
+
     if (isHolder(_holder)) {
       return false;
     }

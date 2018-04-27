@@ -14,14 +14,15 @@ contract DistributableToken is TokenHolders, MintableToken {
     regUsers = _regUsers;
   }
 
-  function transfer(address _to, uint256 _value) public returns (bool) {
+  function transfer(address _to, uint256 _value) public returns(bool) {
     require(regUsers.isUserRegistered(_to));
 
     if (!isHolder(_to)) {
-      addHolder(_to);
+      this.addHolder(_to);
     }
 
     super.transfer(_to, _value);
+    return true;
   }
 
   function calculateProfit(uint256 _totalProfit, address _holder) public view returns(uint256);
