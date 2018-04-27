@@ -99,6 +99,50 @@ contract('RAXToken', function ([owner, investor, purchaser, network, RAXcompany,
         it('should allow transferFrom when unpaused', async function() {
             await token.transferFrom(purchaser, investor,1, {from: investor});
         });
+
+        it('should fulfille get Token ID equal 1', async function() {
+            (await token.getID()).should.be.bignumber.equal(1);
+        });
     });
 
+    //holder test
+    describe ('Holder', function () {
+      it('should begin with 0 holder', async () => {
+        (await token.getTheNumberOfHolders()).should.be.bignumber.equal (0);
+      });
+
+      it ('owner can update holder', async() => {
+        await token.addHolder(partner).should.not.be.rejected;
+      });
+
+      it ('only owner can update holder', async () => {
+        await token.addHolder(investor, {from: investor}).should.be.rejected;
+      });
+
+      it ('add holder update holder', async () => {
+        const numb_holder = await token.getTheNumberOfHolders();
+        await token.addHolder(investor);
+        numb_holder.should.be.bignumber.equal (await token.getTheNumberOfHolders() - 1);
+
+        await token.addHolder(purchaser);
+        numb_holder.should.be.bignumber.equal (await token.getTheNumberOfHolders() - 2);
+      })
+
+      it ('add existed holder should be rejected', async () => {
+        var numberHolderBefore = await token.getTheNumberOfHolders();
+        (await token.addHolder(investor));
+        (await token.addHolder(purchaser));
+        var numberHolderAfter = await token.getTheNumberOfHolders();
+        numberHolderAfter.should.be.bignumber.equal(numberHolderBefore);
+        (await token.isHolder(investor)).should.be.equal(true);
+        (await token.isHolder(purchaser)).should.be.equal(true);
+      })
+
+      it('check holder', async () => {
+        (await token.isHolder(owner)).should.be.equal(false);
+
+        (await token.isHolder(investor)).should.be.equal(true);
+        (await token.isHolder(purchaser)).should.be.equal(true);
+      });
+    });
 });

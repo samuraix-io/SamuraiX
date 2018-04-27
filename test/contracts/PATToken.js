@@ -33,7 +33,7 @@ contract ('PATToken', function ([owner, manager, investor, purchaser, network, R
       let reserveFundRate = 10;
       let managers = ['0xffcf8fdee72ac11b5c542428b35eef5769c409f0'];
       let samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-      token = await PATToken.new(registered_user.address, id, managers, name, symbol, fixed_linkDoc, fixed_hashDoc, var_linkDoc, var_hashDoc, samuraiXWallet, listingFeeRate, reserveFundRate);
+      token = await PATToken.new(registered_user.address, id, managers, name, symbol, fixed_linkDoc, fixed_hashDoc, var_linkDoc, var_hashDoc);
   });
 
   //holder test
@@ -205,6 +205,10 @@ contract ('PATToken', function ([owner, manager, investor, purchaser, network, R
         });
         it('should allow transferFrom when unpaused', async function() {
             await token.transferFrom(purchaser, investor,1, {from: investor});
+        });
+
+        it('should fulfille get Token ID equal 2', async function() {
+            (await token.getID()).should.be.bignumber.equal(2);
         });
     });
   });
