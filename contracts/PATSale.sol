@@ -7,12 +7,18 @@ import './ManageListingFee.sol';
 import './ManageReserveFunds.sol';
 
 
-/*
- * PATSale is
- *  - capped at 2 billion tokens
- *  - 0.1 ether minimum purchase amount
- *  - exchange rate varies with purchase amount
- */
+/**
+ * @title PAT token sale.
+ * @dev PATSale is:
+ *   - minCap and maxCap are specified as parameters.
+ *   - refundable.
+ *   - reserves a specified amount of tokens for paying asset listing fee.
+ *   - reserves a specified amount of tokens for reserving funds.
+ *   - reserve tokens are pre-minted to two relevant contracts.
+ *   - any unregistered users can not buy tokens.
+ *   - 0.1 ether minimum purchase amount.
+ *   - supports using RAX to buy tokens.
+ **/
 contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     using SafeMath for uint256;
     using CoinExchange for uint256;
@@ -29,6 +35,22 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     ManageReserveFunds manageReserveFunds;
     bool managedTokensMinted = false;
 
+    /**
+     * @param _regUsers A contract to check whether an account is registered or not.
+     * @param _raxToken RAX token contract address.
+     * @param _token PAT token contract address.
+     * @param _manageListingFee A contract to receive pre-mint tokens for paying asset listing fee.
+     * @param _manageReserveFunds A contract to receive pre-mint tokens for reserving funds.
+     * @param _startTime Start date.
+     * @param _endTime End data.
+     * @param _ethWallet A wallet address to receive sales proceeds if crowdsale is successful.
+     * @param _minCap Minimum cap.
+     * @param _maxCap Maximum cap.
+     * @param _ethPATRate Number of token units a buyer gets per Ether.
+     * @param _ethRAXRate Number of RAX token units a buyer gets per Ether.
+     * @param _listingFeeRate Percentage of tokens for paying asset listing fee.
+     * @param _reserveFundRate Percentage of tokens for reserving funds.
+     */
     function PATSale(
       RegisteredUsers _regUsers,
       RAXToken _raxToken,
@@ -69,6 +91,11 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       _checkRates();
     }
 
+    /**
+     * @dev Pre-mints tokens for managing purpose. This amount of tokens
+     * will be used by a token manager to pay asset listing fee or to withdraw
+     * reserving funds to a beneficiary address.
+     */
     function mintManagedTokens() onlyOwner external {
       require(!managedTokensMinted);
       managedTokensMinted = true;
@@ -84,12 +111,20 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       manageReserveFunds.setTokens(getTokenContract(), _reserveFundTokens);
     }
 
+    /**
+     * @dev Sets minimum purchase amount.
+     * @param _wei Wei amount.
+     */
     function setMinPurchaseAmt(uint256 _wei) onlyOwner public {
       require(_wei >= 0);
       minPurchaseAmt = _wei;
     }
 
-    function tokensRemaining() view public returns (uint256) {
+    /**
+     * @dev Gets the number of remaining tokens.
+     * @return The number of remaining tokens.
+     */
+    function tokensRemaining() view public returns(uint256) {
       return maxCap.sub(tokensSold);
     }
 
@@ -97,6 +132,9 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
      * internal functions
      */
 
+     /**
+      * @dev Checks whether sale rate and reserve rate are valid.
+      */
     function _checkRates() view internal {
       uint256 _totalTokens = getTokenContract().getTotalTokens();
       uint256 _saleRate = (maxCap.mul(100)).div(_totalTokens);
@@ -104,6 +142,11 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       require(uint8(100) == _totalPer);
     }
 
+    /**
+    * @dev Exchanges from Wei to PAT token.
+    * @param _wei Amount of Wei to exchange.
+    * @return The number of PAT token units exchanged.
+    */
     function _weiToPAT(uint256 _wei) view internal returns(uint256) {
       require(_wei >= minPurchaseAmt);
 
@@ -122,6 +165,11 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       return _tokens;
     }
 
+    /**
+    * @dev Exchanges from RAT token to Wei.
+    * @param _amount Amount of RAT token units.
+    * @return Amount of Wei exchanged.
+    */
     function _raxToWei(uint256 _amount) view internal returns(uint256) {
       require(_amount > 0);
 
