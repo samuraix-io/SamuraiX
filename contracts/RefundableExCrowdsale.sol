@@ -43,10 +43,10 @@ contract RefundableExCrowdsale is RefundableCrowdsale {
   }
 
   /**
-   * @dev Owner can force refunding to investor if crowdsale is unsuccessful.
+   * @dev Forces refunding to investor if crowdsale is unsuccessful.
    * @param _investor Investor address.
    */
-  function refund(address _investor) onlyOwner public {
+  function refund(address _investor) public {
     require(isFinalized);
     require(!goalReached());
 
