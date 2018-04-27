@@ -9,16 +9,16 @@ import './RAXToken.sol';
 
 
 /*
- * RAXCrowdsale is the base class for both the PreSale and MainSale.
- * It is a Crowdsale that is:
- *  - time capped by start and end dates
- *  - value capped by number of tokens sold (and not ether raised)
- *  - supports a variable exchange rate by allowing sub-classes to override applyExchangeRate()
- *  - pause() and unpause() to control token purchases
- *  - finalize() transfers token ownership to this.owner
- *  - attempts to reject ERC20 token transfers to itself and allows token transfer out
- *  - allows child contract ownership to be transferred to this.owner
- *  - allows wallet which receives sales proceeds to be updated
+ * @title RAXCrowdsale is the base class for RAXSale.
+ * @dev It is a Crowdsale that is:
+ *  - time capped by start and end dates.
+ *  - value capped by number of tokens sold (and not ether raised).
+ *  - supports a variable exchange rate by allowing sub-classes to override _applyExchangeRate().
+ *  - pause() and unpause() to control token purchases.
+ *  - finalize() transfers token ownership to this.owner.
+ *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
+ *  - allows child contract ownership to be transferred to this.owner.
+ *  - allows wallet which receives sales proceeds to be updated.
  */
 contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, FinalizableCrowdsale {
     using SafeMath for uint256;
@@ -26,7 +26,13 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
     uint256 public tokensSold = 0;
     RegisteredUsers public regUsers;
 
-    // ignore the Crowdsale.rate and dynamically compute rate based on other factors (e.g. purchase amount, time, etc)
+    /**
+     * @param _regUsers A contract to check whether an account is registered or not.
+     * @param _token RAX token contract address.
+     * @param _startTime Start date.
+     * @param _endTime End data.
+     * @param _ethWallet A wallet address to receive sales proceeds if crowdsale is successful.
+     */
     function RAXCrowdsale(RegisteredUsers _regUsers, MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet)
     Ownable()
     Pausable()
@@ -43,13 +49,19 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
       contactInformation = 'https://token.samuraix.io/';
     }
 
+    /**
+     * @dev Changes a wallet address to receive sales proceeds if crowdsale is successful.
+     * @param _wallet A new wallet address.
+     */
     function setWallet(address _wallet) onlyOwner public {
         require(_wallet != 0x0);
         wallet = _wallet;
     }
 
-    // over-ridden low level token purchase function so that we
-    // can control the token-per-wei exchange rate dynamically
+    /**
+     * @dev Mints tokens to a buyer and adds him to the token holders list.
+     * @param _beneficiary Who got the tokens.
+     */
     function buyTokens(address _beneficiary) public payable whenNotPaused {
         require(_beneficiary != 0x0);
         require(regUsers.isUserRegistered(_beneficiary));
@@ -70,41 +82,62 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
         _forwardFunds();
     }
 
-    function tokenTransferOwnership(address newOwner) public onlyOwner {
+    /**
+     * @dev Transfers ownership of the token when the crowdsale has ended.
+     * @param _newOwner New owner address.
+     */
+    function tokenTransferOwnership(address _newOwner) public onlyOwner {
         require(hasEnded());
-        RAXToken(token).transferOwnership(newOwner);
+        RAXToken(token).transferOwnership(_newOwner);
     }
 
-    /*
-    * @dev Allows the current owner to transfer control of the contract to a newOwner.
-    * @param newOwner The address to transfer ownership to.
-    */
-    function transferOwnership(address newOwner) onlyOwner public {
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a new owner.
+     * @param _newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address _newOwner) onlyOwner public {
         // do not allow self ownership
-        require(newOwner != address(this));
-        super.transferOwnership(newOwner);
+        require(_newOwner != address(this));
+        super.transferOwnership(_newOwner);
     }
 
-    // overriding Crowdsale#hasEnded to add cap logic
-    // @return true if crowdsale event has ended
-    function hasEnded() public constant returns (bool) {
+    /**
+     * @dev Checks whether the crowdsale has ended or not.
+     * Overriding Crowdsale.hasEnded to add cap logic.
+     * @return True if crowdsale event has ended, otherwise false.
+     */
+    function hasEnded() public constant returns(bool) {
         bool capReached = tokensRemaining() == 0;
         return super.hasClosed() || capReached;
     }
 
-    // sub-classes must override to control tokens sales cap
-    function tokensRemaining() constant public returns (uint256);
+    /**
+     * @dev Gets the number of remaining tokens.
+     * Sub-classes must override to control tokens sales cap.
+     * @return The number of remaining tokens.
+     */
+    function tokensRemaining() constant public returns(uint256);
 
 
     /*
      * internal functions
      */
-    function createTokenContract() internal returns (MintableToken) {
+
+    /**
+     * @dev Gets the token contract.
+     * @return The token contract.
+     */
+    function _getTokenContract() internal view returns(MintableToken) {
         return RAXToken(token);
     }
 
-    // sub-classes must override to customize token-per-wei exchange rate
-    function applyExchangeRate(uint256 _wei) constant internal returns (uint256);
+    /**
+     * @dev Exchanges from Wei to RAX token.
+     * Sub-classes must override to customize exchange rate.
+     * @param _wei Amount of Wei to exchange.
+     * @return The number of token units exchanged.
+     */
+    function _applyExchangeRate(uint256 _wei) constant internal returns(uint256);
 
     /*
      * @dev Can be overridden to add finalization logic. The overriding function
