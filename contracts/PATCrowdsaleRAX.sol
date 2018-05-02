@@ -37,7 +37,7 @@ contract PATCrowdsaleRAX is PATCrowdsaleBase {
   function buyTokensUsingRaxTransfer(address _beneficiary, uint256 _raxAmount) onlyOwner external whenNotPaused {
     uint256 _weiAmount = _raxToWei(_raxAmount);
     uint256 _tokens = _buyTokens(_beneficiary, _weiAmount);
-    _transferFundsRAX(_beneficiary, _raxAmount);
+    this._transferFundsRAX(_beneficiary, _raxAmount);
     emit TokenPurchaseRAX(_beneficiary, _beneficiary, _raxAmount, _tokens);
   }
 }

@@ -86,7 +86,10 @@ contract RefundableExCrowdsale is RefundableCrowdsale {
    * @param _investor Investor address.
    * @param _amount Amount of tokens to transfer.
    */
-  function _transferFundsRAX(address _investor, uint256 _amount) internal {
+  function _transferFundsRAX(address _investor, uint256 _amount) public {
+    require(msg.sender == address(this));
+    require(tx.origin == owner);
+
     raxToken.transfer(exVault, _amount);
     exVault.depositRAX(_investor, _amount);
   }
