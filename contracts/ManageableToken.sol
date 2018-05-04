@@ -36,10 +36,6 @@ contract ManageableToken is AssetInfo, DistributableToken {
     return super.transfer(_to, _value);
   }
 
-  function calculateProfit(uint256 _totalProfit, address _holder) public view whenEnable returns(uint256) {
-    return super.calculateProfit(_totalProfit, _holder);
-  }
-
   function mint(address _to, uint256 _amount) onlyOwner canMint public whenEnable returns(bool) {
     return super.mint(_to, _amount);
   }
