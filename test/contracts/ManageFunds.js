@@ -21,210 +21,147 @@ const ManageListingFee = artifacts.require("./ManageListingFee.sol");
 const ManageReserveFunds = artifacts.require("./ManageReserveFunds.sol");
 
 
-contract('ManageListingFee and ManageReserveFunds', async function([dump, manager, wallet, investor, purchaser, visitor]) {
+contract('ManageListingFee and ManageReserveFunds', async function([owner, manager1, wallet, investor, purchaser, visitor, manager2, wallet1, wallet2, samuraiXWallet]) {
+
+  let listingFeeRate = 5;
+  let reserveFundsRate = 20;
+  let listingFeeTokens = new BigNumber(listingFeeRate * (10**6)*(10**18));
+  let reserveFundsTokens = new BigNumber(reserveFundsRate * (10**6)*(10**18));
+  let minCap = new BigNumber(50*(10**6)*(10**18));
+  let maxCap = new BigNumber(75*(10**6)*(10**18));
+  let id = 4;
+  let fixedLinkDoc = 'pat_doc_4';
+  let fixedHashDoc = 'pat_hash_4';
+  let varLinkDoc = 'var_patDoc4';
+  let varHashDoc = 'var_hashDoc4';
+  let name = 'Namepat4';
+  let symbol = 'Symbol4';
+  let ethPATRate = 75000;
+  let ethRAXRate = 75000;
+  let managers = [manager1, manager2];
 
   before(async function() {
     //Advance to the next block to correctly read time in the solidity "now" function
     await advanceBlock()
   });
 
-  describe('distribute', function () {
+  describe('setup', function () {
     beforeEach(async function() {
       this.startTime = latestTime() + duration.minutes(1);
       this.endTime = this.startTime + duration.hours(1);
-      const id = 4
-      let fixed_linkDoc = 'pat_doc_4';
-      let fixed_hashDoc = 'pat_hash_4';
-      let var_linkDoc = 'var_patDoc4';
-      let var_hashDoc = 'var_hashDoc4';
-      let listingFeeRate = 5;
-      let reserveFundRate = 20;
-      let name = 'Namepat4';
-      let symbol = 'Symbol4';
-      let minCap = 50*(10**6)*(10**18);
-      let maxCap = 75*(10**6)*(10**18);
-      let ethPATRate = 75000;
-      let ethRAXRate = 75000;
-      let managers = [manager];
-      let samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-      let purchaser2 = "0x28a8746e75304c0780e011bed21c72cd78cd535e";
-      this.registered_user = await RegisteredUsers.deployed();
+      this.registeredUser = await RegisteredUsers.deployed();
       this.manageListingFee = await ManageListingFee.deployed();
       this.manageReserveFunds = await ManageReserveFunds.deployed();
-      this.raxToken = await RAXToken.new(this.registered_user.address);
-      this.registered_user.addRegisteredUser(investor);
-      this.registered_user.addRegisteredUser(purchaser);
-      this.registered_user.addRegisteredUser(purchaser2);
+      this.raxToken = await RAXToken.new(this.registeredUser.address);
+      this.registeredUser.addRegisteredUser(investor);
+      this.registeredUser.addRegisteredUser(purchaser);
+      this.registeredUser.addRegisteredUser(samuraiXWallet);
+      this.registeredUser.addRegisteredUser(wallet1);
+      this.registeredUser.addRegisteredUser(wallet2);
 
-      this.token = await PATToken.new(this.registered_user.address, id, managers, name,
-                                      symbol, fixed_linkDoc, fixed_hashDoc, var_linkDoc,
-                                      var_hashDoc);
-      this.crowdsale = await PATSale.new(this.registered_user.address, this.raxToken.address,
+      this.token = await PATToken.new(this.registeredUser.address, id, managers, name,
+                                      symbol, fixedLinkDoc, fixedHashDoc, varLinkDoc,
+                                      varHashDoc);
+      this.crowdsale = await PATSale.new(this.registeredUser.address, this.raxToken.address,
                                         this.token.address, this.manageListingFee.address,
                                         this.manageReserveFunds.address, this.startTime,
                                         this.endTime, wallet, minCap, maxCap, ethPATRate,
-                                        ethRAXRate, listingFeeRate, reserveFundRate);
+                                        ethRAXRate, listingFeeRate, reserveFundsRate);
 
       this.afterEndTime = this.endTime + duration.seconds(1);
       const token_owner = await this.token.owner();
       await this.token.transferOwnership(this.crowdsale.address, {from: token_owner});
-      const owner = await this.crowdsale.owner();
       await this.crowdsale.mintManagedTokens({from: owner}).should.be.fulfilled;
       await increaseTimeTo(this.startTime);
     });
 
-    describe('distribute listing fee', function () {
-      var listtingFeeTokens = new BigNumber(5*(10**6)*(10**18));
-      let purchaser2 = "0x28a8746e75304c0780e011bed21c72cd78cd535e";
-      it('should distribute listing fee to samuraiXWallet', async function() {
-        var samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-        await this.registered_user.addRegisteredUser(samuraiXWallet);
-        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.fulfilled;
-        var tokensAfter = await this.token.balanceOf(samuraiXWallet);
-        tokensAfter.should.be.bignumber.equal(listtingFeeTokens);
+    describe('distributes listing fee', function () {
+      it('should be succeed when distributes listing fee to SamuraiX platform wallet', async function() {
+        var tokens1 = await this.token.balanceOf(samuraiXWallet);
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
+        var tokens2 = await this.token.balanceOf(samuraiXWallet);
+        tokens2.should.be.bignumber.equal(tokens1.plus(listingFeeTokens));
       });
 
-      it('should reject distribute listing fee to samuraiXWallet twice', async function() {
-        var samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-        await this.registered_user.addRegisteredUser(samuraiXWallet);
-        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.fulfilled;
-        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.rejected;
-        var tokensAfter = await this.token.balanceOf(samuraiXWallet);
-        tokensAfter.should.be.bignumber.equal(listtingFeeTokens);
-      });
-    });
-
-    describe('distribute reverve fund', function () {
-      let purchaser2 = "0x28a8746e75304c0780e011bed21c72cd78cd535e";
-      it('should distribute reserve fund to other address', async function() {
-        var tokensBefore = await this.token.balanceOf(purchaser2);
-        var amountTokens = (10**6)*(10**18);
-        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, purchaser2, amountTokens, {from: manager}).should.be.fulfilled;
-        var tokensAfter = await this.token.balanceOf(purchaser2);
-        tokensAfter.should.be.bignumber.equal(amountTokens);
+      it('should be rejected when distributes listing fee twice', async function() {
+        var tokens1 = await this.token.balanceOf(samuraiXWallet);
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.rejected;
+        var tokens2 = await this.token.balanceOf(samuraiXWallet);
+        tokens2.should.be.bignumber.equal(tokens1.plus(listingFeeTokens));
       });
 
-      it('should distribute reserve fund amount equal amount seted', async function() {
-        // amount reserveFund = 20% total tokens = 20*(10**6)*(10**18)
-        var tokensBefore = await this.token.balanceOf(purchaser2);
-        var amountTokens1 = (10**6)*(10**18);
-        var amountTokens2 = 20*(10**6)*(10**18);
-        var amountTokens3 = 19*(10**6)*(10**18);
-        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, purchaser2, amountTokens1, {from: manager}).should.be.fulfilled;
-        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, purchaser2, amountTokens2, {from: manager}).should.be.rejected;
-        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, purchaser2, amountTokens3, {from: manager}).should.be.fulfilled;
-        var tokensAfter = await this.token.balanceOf(purchaser2);
-        tokensAfter.should.be.bignumber.equal(amountTokens2);
-      });
-    });
-  });
-
-  describe('distribute listingfee and reserve fund odd', function () {
-    beforeEach(async function() {
-      this.startTime = latestTime() + duration.minutes(1);
-      this.endTime = this.startTime + duration.hours(1);
-      const id = 4
-      let fixed_linkDoc = 'pat_doc_4';
-      let fixed_hashDoc = 'pat_hash_4';
-      let var_linkDoc = 'var_patDoc4';
-      let var_hashDoc = 'var_hashDoc4';
-      let listingFeeRate = 7;
-      let reserveFundRate = 13;
-      let name = 'Namepat4';
-      let symbol = 'Symbol4';
-      let minCap = 50*(10**6)*(10**18);
-      let maxCap = 80*(10**6)*(10**18);
-      let ethPATRate = 75000;
-      let ethRAXRate = 75000;
-      let managers = [manager];
-      let samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-      let purchaser2 = "0x28a8746e75304c0780e011bed21c72cd78cd535e";
-      this.registered_user = await RegisteredUsers.deployed();
-      this.manageListingFee = await ManageListingFee.deployed();
-      this.manageReserveFunds = await ManageReserveFunds.deployed();
-      this.raxToken = await RAXToken.new(this.registered_user.address);
-      this.registered_user.addRegisteredUser(investor);
-      this.registered_user.addRegisteredUser(purchaser);
-      this.registered_user.addRegisteredUser(purchaser2);
-
-      this.token = await PATToken.new(this.registered_user.address, id, managers, name,
-                                      symbol, fixed_linkDoc, fixed_hashDoc, var_linkDoc,
-                                      var_hashDoc);
-      this.crowdsale = await PATSale.new(this.registered_user.address, this.raxToken.address,
-                                        this.token.address, this.manageListingFee.address,
-                                        this.manageReserveFunds.address, this.startTime,
-                                        this.endTime, wallet, minCap, maxCap, ethPATRate,
-                                        ethRAXRate, listingFeeRate, reserveFundRate);
-
-      this.afterEndTime = this.endTime + duration.seconds(1);
-      const token_owner = await this.token.owner();
-      await this.token.transferOwnership(this.crowdsale.address, {from: token_owner});
-      const owner = await this.crowdsale.owner();
-      await this.crowdsale.mintManagedTokens({from: owner}).should.be.fulfilled;
-      await increaseTimeTo(this.startTime);
-    });
-
-    describe('distribute listing fee', function () {
-      let managers = [manager];
-      var listtingFeeTokens = new BigNumber(7*(10**6)*(10**18));
-      let purchaser2 = "0x28a8746e75304c0780e011bed21c72cd78cd535e";
-      it('should distribute listing fee to samuraiXWallet', async function() {
-        var samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-        await this.registered_user.addRegisteredUser(samuraiXWallet);
-        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.fulfilled;
-        var tokensAfter = await this.token.balanceOf(samuraiXWallet);
-        tokensAfter.should.be.bignumber.equal(listtingFeeTokens);
-      });
-
-      it('should distribute listing fee to samuraiXWallet', async function() {
-        var samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-        await this.registered_user.addRegisteredUser(samuraiXWallet);
-        var res = await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.fulfilled;
-        var tokensAfter = await this.token.balanceOf(samuraiXWallet);
-        tokensAfter.should.be.bignumber.equal(listtingFeeTokens);
-
-        const {logs} = res;
-
-        const event = logs.find(e => e.event === 'FundsDistributed');
-        should.exist(event);
-        event.args._token.should.be.equal(this.token.address);
-        event.args._manager.should.be.equal(managers[0]);
-        event.args._beneficiary.should.be.equal(samuraiXWallet);
-        event.args._amount.should.be.bignumber.equal(listtingFeeTokens);
-      });
-
-      it('should reject distribute listing fee to samuraiXWallet twice', async function() {
-        var samuraiXWallet = "0x1df62f291b2e969fb0849d99d9ce41e2f137006e";
-        await this.registered_user.addRegisteredUser(samuraiXWallet);
-        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.fulfilled;
-        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager}).should.be.rejected;
-        var tokensAfter = await this.token.balanceOf(samuraiXWallet);
-        tokensAfter.should.be.bignumber.equal(listtingFeeTokens);
+      it('non-owner can not distribute listing fee', async function() {
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: visitor}).should.be.rejected;
       });
     });
 
-    describe('distribute reverve fund', function () {
-      let purchaser2 = "0x28a8746e75304c0780e011bed21c72cd78cd535e";
-      it('should distribute reserve fund to other address', async function() {
-        var tokensBefore = await this.token.balanceOf(purchaser2);
-        var amountTokens = (123456)*(10**18);
-        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, purchaser2, amountTokens, {from: manager}).should.be.fulfilled;
-        var tokensAfter = await this.token.balanceOf(purchaser2);
-        tokensAfter.should.be.bignumber.equal(amountTokens);
+    describe('distributes reverving funds', function () {
+      it('should be succeed when distributes reserving funds to a registered address', async function() {
+        var amountTokens = new BigNumber((10**6)*(10**18));
+        var tokens1 = await this.token.balanceOf(wallet1);
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens, {from: manager1}).should.be.fulfilled;
+        var tokens2 = await this.token.balanceOf(wallet1);
+        tokens2.should.be.bignumber.equal(tokens1.plus(amountTokens));
+      });
+
+      it('non-owner can not withdraw reserving funds', async function() {
+        var amountTokens = new BigNumber(10*(10**18));
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens, {from: visitor}).should.be.rejected;
+      });
+
+      it('can not withdraw an amount of tokens which exceeds the reserve rate', async function() {
+        // reserve funds rate = 20% of total tokens (which will be 20*(10**6)*(10**18))
+        var amountTokens1 = new BigNumber((10**6)*(10**18));
+        var amountTokens2 = new BigNumber(20*(10**6)*(10**18));
+        var amountTokens3 = new BigNumber(19*(10**6)*(10**18));
+        var tokens1 = await this.token.balanceOf(wallet1);
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens1, {from: manager1}).should.be.fulfilled;
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens2, {from: manager1}).should.be.rejected;
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens3, {from: manager1}).should.be.fulfilled;
+        var tokens2 = await this.token.balanceOf(wallet1);
+        tokens2.should.be.bignumber.equal(tokens1.plus(amountTokens1.plus(amountTokens3)));
       });
     });
 
-    describe('change SamuraiXWallet', function () {
-      var owner = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1';
-      var newWallet = '0x3e5e9111ae8eb78fe1cc3bb8915d5d461f3ef9a9';
-      it('should fulfille when owner set new samuraiXWallet', async function() {
-        await this.manageListingFee.setSammuraiXWallet(newWallet, {from: owner}).should.be.fulfilled;
+    describe('multiple managers', function () {
+      it('each manager can control manageable tasks', async function() {
+        var amountTokens1 = new BigNumber((10**6)*(10**18));
+        var amountTokens2 = new BigNumber(10*(10**6)*(10**18));
+        var tokens1 = await this.token.balanceOf(samuraiXWallet);
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
+        var tokens2 = await this.token.balanceOf(samuraiXWallet);
+        tokens2.should.be.bignumber.equal(tokens1.plus(listingFeeTokens));
+
+        var tokens3 = await this.token.balanceOf(wallet1);
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens1, {from: manager2}).should.be.fulfilled;
+        var tokens4 = await this.token.balanceOf(wallet1);
+        tokens4.should.be.bignumber.equal(amountTokens1.plus(tokens3));
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens2, {from: manager1}).should.be.fulfilled;
+        var tokens5 = await this.token.balanceOf(wallet1);
+        tokens5.should.be.bignumber.equal(amountTokens2.plus(tokens4));
+      });
+    });
+
+    describe('owner can change SamuraiX platform wallet', function () {
+      it('should be fulfilled when the owner sets a new SamuraiX platform wallet', async function() {
+        await this.manageListingFee.setSammuraiXWallet(wallet1, {from: owner}).should.be.fulfilled;
         var wallet = await this.manageListingFee.samuraiXWallet();
-        wallet.should.be.equal(newWallet);
+        wallet.should.be.equal(wallet1);
       });
 
-      it('should fulfille when not owner set new samuraiXWallet', async function() {
-        await this.manageListingFee.setSammuraiXWallet(newWallet, {from: owner}).should.be.rejected;
+      it('non-owner can not set a new SamuraiX platform wallet', async function() {
+        await this.manageListingFee.setSammuraiXWallet(wallet2, {from: manager1}).should.be.rejected;
+      });
+
+      it('listing fee should be distributed to the newly set SamuraiX platform wallet', async function() {
+        var tokens1 = await this.token.balanceOf(samuraiXWallet);
+        var tokens2 = await this.token.balanceOf(wallet1);
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
+        var tokens3 = await this.token.balanceOf(samuraiXWallet);
+        var tokens4 = await this.token.balanceOf(wallet1);
+        tokens4.should.be.bignumber.equal(tokens2.plus(listingFeeTokens));
+        tokens3.should.be.bignumber.equal(tokens1);
       });
     });
   });
