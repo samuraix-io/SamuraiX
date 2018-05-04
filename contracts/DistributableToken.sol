@@ -15,14 +15,25 @@ contract DistributableToken is TokenHolders, MintableToken {
   }
 
   function transfer(address _to, uint256 _value) public returns(bool) {
+    _checkTransferTarget(_to);
+
+    super.transfer(_to, _value);
+    return true;
+  }
+
+  function transferFrom(address _from, address _to, uint256 _value) public returns(bool) {
+    _checkTransferTarget(_to);
+
+    super.transferFrom(_from, _to, _value);
+    return true;
+  }
+
+  function _checkTransferTarget(address _to) internal {
     require(regUsers.isUserRegistered(_to));
 
     if (!isHolder(_to)) {
       this.addHolder(_to);
     }
-
-    super.transfer(_to, _value);
-    return true;
   }
 
   function calculateProfit(uint256 _totalProfit, address _holder) public view returns(uint256);
