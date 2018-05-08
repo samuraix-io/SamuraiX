@@ -32,6 +32,16 @@ contract RefundableExVault is RefundVault {
     raxToken = _token;
   }
 
+  /*
+   * @dev Changes a wallet address to receive sales proceeds if crowdsale is successful.
+   * @param _wallet A new wallet address.
+   */
+  function setWallet(address _wallet) onlyOwner public {
+    require(_wallet != 0x0);
+
+    wallet = _wallet;
+  }
+
   /**
    * @dev Stores RAX tokens while the crowdsale is in progress.
    * @param _investor Investor address.

@@ -71,7 +71,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     require(_wallet != 0x0);
     require(getTokenContract().isManager(msg.sender));
 
-    wallet = _wallet;
+    _setWallet(_wallet);
   }
 
   /**

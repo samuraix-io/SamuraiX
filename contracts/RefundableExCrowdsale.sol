@@ -71,6 +71,16 @@ contract RefundableExCrowdsale is RefundableCrowdsale {
   }
 
   /*
+   * @dev Changes a wallet address to receive sales proceeds if crowdsale is successful.
+   * @param _wallet A new wallet address.
+   */
+  function _setWallet(address _wallet) internal {
+    exVault.setWallet(_wallet);
+
+    wallet = _wallet;
+  }
+
+  /*
    * @dev Forwards RAX tokens from the investor to the vault.
    * @param _amount Amount of tokens to forward.
    */
