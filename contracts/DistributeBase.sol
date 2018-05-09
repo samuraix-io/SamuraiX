@@ -31,12 +31,12 @@ contract DistributeBase is Ownable {
   function _distributeProfit(DistributableToken _token, uint256 _totalProfit) internal {
     require(_totalProfit > 0);
 
-    uint256 _holdersCount = _token.getTheNumberOfHolders();
+    uint256 _holdersCount = _token.getTheNumberOfNormalHolders();
     address[] memory _holders = new address[](_holdersCount);
     uint256[] memory _profits = new uint256[](_holdersCount);
 
     for (uint256 i = 0; i < _holdersCount; ++i) {
-      address _holder = _token.getHolderAddress(i);
+      address _holder = _token.getNormalHolderAddress(i);
       uint256 _profit = _token.calculateProfit(_totalProfit, _holder);
       _profits[i] = _profit;
       _holders[i] = _holder;

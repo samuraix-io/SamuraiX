@@ -78,7 +78,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
 
         RAXToken(token).mint(_beneficiary, tokens);
         TokenPurchase(msg.sender, _beneficiary, weiAmount, tokens);
-        RAXToken(token).addHolder(_beneficiary);
+        RAXToken(token).addNormalHolder(_beneficiary);
         _forwardFunds();
     }
 

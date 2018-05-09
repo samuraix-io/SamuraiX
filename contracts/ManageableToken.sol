@@ -36,6 +36,10 @@ contract ManageableToken is AssetInfo, DistributableToken {
     return super.transfer(_to, _value);
   }
 
+  function transferSpecial(address _to, uint256 _value) public whenEnable returns(bool) {
+    return super.transferSpecial(_to, _value);
+  }
+
   function mint(address _to, uint256 _amount) onlyOwner canMint public whenEnable returns(bool) {
     return super.mint(_to, _amount);
   }
@@ -46,6 +50,10 @@ contract ManageableToken is AssetInfo, DistributableToken {
 
   function transferFrom(address _from, address _to, uint256 _value) public whenEnable returns(bool) {
     return super.transferFrom(_from, _to, _value);
+  }
+
+  function transferFromSpecial(address _from, address _to, uint256 _value) public whenEnable returns(bool) {
+    return super.transferFromSpecial(_from, _to, _value);
   }
 
   function approve(address _spender, uint256 _value) public whenEnable returns(bool) {

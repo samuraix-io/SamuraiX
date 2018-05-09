@@ -100,7 +100,7 @@ contract RefundableExCrowdsale is RefundableCrowdsale {
     require(msg.sender == address(this));
     require(tx.origin == owner);
 
-    raxToken.transfer(exVault, _amount);
+    raxToken.transferSpecial(exVault, _amount);
     exVault.depositRAX(_investor, _amount);
   }
 

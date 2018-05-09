@@ -104,7 +104,7 @@ contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Manage
    */
   function calculateProfit(uint256 _totalProfit, address _holder) public view returns(uint256) {
     require(_totalProfit > 0);
-    require(isHolder(_holder));
+    require(isNormalHolder(_holder));
 
     uint256 _balance = balanceOf(_holder);
     uint256 _profit = (_balance.mul(_totalProfit)).div(TOTAL_TOKENS);
