@@ -11,15 +11,13 @@ module.exports = function(deployer, network, accounts) {
   let endDate = startDate + 86400 * 7 * 1000;
   let wallet = accounts[2];
   let decimals = 10 ** 18;
-  let maxCap = (85 * 1000000) * decimals;
+  let maxCap = (75 * 1000000) * decimals;
   let minCap = (50 * 1000000) * decimals;
   let listingFeeRate = 5;
-  let reserveFundRate = 10;
-  let reserve_rate = 10;
+  let reserveFundRate = 20;
   let ethPATRate = 75000;
   let ethRAXRate = 75000;
   let minPurchaseAmt = "undefined";
-  let RAXrate = 100;
   switch (network) {
     case "development":
       overwrite = true;

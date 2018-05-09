@@ -110,6 +110,8 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
     });
 
     describe('after end', function () {
+      var res;
+
       before(async function () {
         await increaseTimeTo(this.afterEndTime);
       });
@@ -124,12 +126,19 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
 
       it('finalize transfers token ownership', async function() {
         (await this.token.owner()).should.be.equal(this.crowdsale.address);
-        await this.crowdsale.finalize();
+        res = await this.crowdsale.finalize();
         (await this.token.owner()).should.be.equal((await this.crowdsale.owner()));
       });
 
       it('should report hasEnded as true', async function() {
         (await this.crowdsale.hasEnded()).should.be.equal(true);
+      });
+
+      it('should log Closed event', async function() {
+        const {logs} = res;
+        const event = logs.find(e => e.event === 'Finalized');
+
+        should.exist(event);
       });
     });
   });
