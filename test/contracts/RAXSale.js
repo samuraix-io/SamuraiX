@@ -16,7 +16,12 @@ const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
 const RAXToken = artifacts.require("./RAXToken.sol");
 const RAXSale = artifacts.require("./RAXSale.sol");
 
-contract('RAXSale', async function([owner, investor, wallet, purchaser, other, newWallet]) {
+contract('RAXSale', async function([owner, investor, wallet, purchaser, other, other1, newWallet]) {
+  let maxCap = new BigNumber(5*(10**9)*(10**18)); // 5 billion tokens
+  let ethRAXRate = 75000;
+  let maxCapEth = maxCap.dividedBy(ethRAXRate).round(0, BigNumber.ROUND_DOWN);
+  let minAmount = finney(100);
+
   before(async function() {
     //Advance to the next block to correctly read time in the solidity "now" function interpreted by testrpc
     await advanceBlock();
@@ -37,6 +42,10 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
       this.crowdsale.should.exist;
       (await this.crowdsale.token()).should.be.equal(this.token.address);
       (await this.crowdsale.weiRaised()).should.be.bignumber.equal(0);
+      (await this.crowdsale.tokensSold()).should.be.bignumber.equal(0);
+      (await this.crowdsale.minPurchaseAmt()).should.be.bignumber.equal(minAmount);
+      (await this.crowdsale.MAX_CAP()).should.be.bignumber.equal(maxCap);
+      (await this.crowdsale.tokensRemaining()).should.be.bignumber.equal(maxCap);
     });
 
     it('should not be self-ownable', async function() {
@@ -48,12 +57,11 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
     const value = ether(10);
 
     before(async function () {
-      let rate = 75000;
       this.startTime = latestTime() + duration.minutes(1);
       this.endTime = this.startTime + duration.hours(1);
       this.registeredUser = await RegisteredUsers.deployed();
       this.token = await RAXToken.new(this.registeredUser.address);
-      this.crowdsale = await RAXSale.new(this.registeredUser.address, this.token.address, this.startTime, this.endTime, wallet, rate);
+      this.crowdsale = await RAXSale.new(this.registeredUser.address, this.token.address, this.startTime, this.endTime, wallet, ethRAXRate);
       this.afterEndTime = this.endTime + duration.seconds(1);
       const tokenOwner = await this.token.owner();
       await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
@@ -127,9 +135,9 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
   });
 
   describe('during sale', function() {
-    const value = ether(10);
-    const rate = 75000;
-    var expectedTokenAmount = value.times(rate);
+    var value = ether(10);
+    var expectedTokenAmount = value.times(ethRAXRate);
+    var tokensRemainingBefore = maxCap;
 
     beforeEach(async function() {
       this.startTime = latestTime() + duration.minutes(1);
@@ -137,15 +145,17 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
       this.registeredUser = await RegisteredUsers.deployed();
       this.token = await RAXToken.new(this.registeredUser.address);
       this.crowdsale = await RAXSale.new(this.registeredUser.address, this.token.address,
-                                    this.startTime, this.endTime, wallet, rate);
+                                    this.startTime, this.endTime, wallet, ethRAXRate);
       this.afterEndTime = this.endTime + duration.seconds(1);
       const tokenOwner = await this.token.owner();
       await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
       await this.registeredUser.addRegisteredUser(investor).should.be.fulfilled;
       await this.registeredUser.addRegisteredUser(purchaser).should.be.fulfilled;
+      await this.registeredUser.addRegisteredUser(other).should.be.fulfilled;
       await increaseTimeTo(this.startTime);
       this.pre = {
         "totalSupply": 0,
+        "tokensSold": 0,
         "investorBalance": 0,
         "weiRaised": 0,
         "walletBalance": web3.eth.getBalance(wallet)
@@ -169,23 +179,41 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
         event.args.amount.should.be.bignumber.equal(expectedTokenAmount);
       });
 
+      it('buying tokens with an odd wei amount', async function () {
+        var amount = new BigNumber(123456789000000000);
+        var tokens1 = await this.token.balanceOf(other);
+        await this.crowdsale.sendTransaction({value: amount, from: other});
+        var tokens2 = await this.token.balanceOf(other);
+        tokens2.should.be.bignumber.equal(tokens1.plus(amount.times(ethRAXRate)));
+      });
+
       it('the investor should become a token holder after buying tokens', async function() {
         (await this.token.isHolder(investor)).should.be.equal(true);
       });
 
       it('should reject buying tokens from unregistered user', async function () {
-        (await this.registeredUser.isUserRegistered(other)).should.be.equal(false);
-        await this.crowdsale.sendTransaction({value: value, from: other}).should.be.rejected;
+        (await this.registeredUser.isUserRegistered(other1)).should.be.equal(false);
+        await this.crowdsale.sendTransaction({value: value, from: other1}).should.be.rejected;
       });
 
       it('should reject under minimum amount (0.1 Ether)', async function() {
-        var underMin = finney(100).minus(1);
+        var underMin = minAmount.minus(1);
         await this.crowdsale.sendTransaction({value: underMin, from: investor}).should.be.rejected;
       });
 
       it('totalSupply should be increased', async function () {
         const post = await this.token.totalSupply();
         post.minus(this.pre.totalSupply).should.be.bignumber.equal(expectedTokenAmount);
+      });
+
+      it('tokensSold should be increased', async function () {
+        const post = await this.crowdsale.tokensSold();
+        post.minus(this.pre.tokensSold).should.be.bignumber.equal(expectedTokenAmount);
+      });
+
+      it('tokensRemaining should be decreased', async function () {
+        const post = await this.crowdsale.tokensRemaining();
+        tokensRemainingBefore.minus(post).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('should assign tokens to sender', async function () {
@@ -222,21 +250,36 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
       });
 
       it('buying tokens with an odd wei amount', async function () {
-        await this.registeredUser.addRegisteredUser(other).should.be.fulfilled;
-        var amount = 123456789000000000;
+        var amount = new BigNumber(123456789000000000);
+        var tokens1 = await this.token.balanceOf(other);
         await this.crowdsale.buyTokens(other, {value: amount, from: other});
-        var tokens = await this.token.balanceOf(other);
-        (Number(tokens)).should.be.equal(Number(amount*rate));
+        var tokens2 = await this.token.balanceOf(other);
+        tokens2.should.be.bignumber.equal(tokens1.plus(amount.times(ethRAXRate)));
       });
 
       it('should reject under minimum amount (0.1 Ether)', async function() {
-        var underMin = finney(100).minus(1);
+        var underMin = minAmount.minus(1);
         await this.crowdsale.buyTokens(investor, {value: underMin, from: investor}).should.be.rejected;
+      });
+
+      it('should reject buying tokens from unregistered user', async function () {
+        (await this.registeredUser.isUserRegistered(other1)).should.be.equal(false);
+        await this.crowdsale.buyTokens(other1, {value: value, from: other1}).should.be.rejected;
       });
 
       it('totalSupply should be increased', async function () {
         const post = await this.token.totalSupply();
         post.minus(this.pre.totalSupply).should.be.bignumber.equal(expectedTokenAmount);
+      });
+
+      it('tokensSold should be increased', async function () {
+        const post = await this.crowdsale.tokensSold();
+        post.minus(this.pre.tokensSold).should.be.bignumber.equal(expectedTokenAmount);
+      });
+
+      it('tokensRemaining should be decreased', async function () {
+        const post = await this.crowdsale.tokensRemaining();
+        tokensRemainingBefore.minus(post).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('should assign tokens to beneficiary', async function () {
@@ -257,36 +300,44 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
 
     describe('token max cap reached', function () {
       it('should return hasEnded() of true', async function() {
-        // Using 66666.666 ether can buy 5 billion tokens = max cap.
-        var amountETH = ether(66666.666);
-        await this.crowdsale.buyTokens(investor, {value: amountETH, from: investor});
-        var tokens = await this.token.balanceOf(investor);
+        // Using maxCapEth ether can buy 5 billion tokens = max cap.
+        await this.crowdsale.buyTokens(investor, {value: maxCapEth, from: investor});
         var remaining = await this.crowdsale.tokensRemaining();
         (await this.crowdsale.hasEnded()).should.be.equal(true);
         remaining.should.be.bignumber.equal(0);
       });
 
-      it('should reject purchases that exceed max cap', async function() {
-        var amountETH = ether(66666);
-        await this.crowdsale.buyTokens(investor, {value: amountETH, from: investor}).should.be.fulfilled;
+      it('should reject purchases that exceed max cap (buyTokens)', async function() {
+        await this.crowdsale.buyTokens(investor, {value: maxCapEth.plus(ether(0.01)), from: investor}).should.be.rejected;
+
+        await this.crowdsale.buyTokens(investor, {value: maxCapEth.minus(ether(0.1)), from: investor}).should.be.fulfilled;
         await this.crowdsale.buyTokens(investor, {value: ether(1), from: investor}).should.be.rejected;
       });
 
+      it('should reject purchases that exceed max cap (fallback)', async function() {
+        await this.crowdsale.sendTransaction({value: maxCapEth.plus(ether(0.01)), from: investor}).should.be.rejected;
+
+        await this.crowdsale.sendTransaction({value: maxCapEth.minus(ether(0.1)), from: investor}).should.be.fulfilled;
+        await this.crowdsale.sendTransaction({value: ether(1), from: investor}).should.be.rejected;
+      });
+
       it('should hit max cap exactly', async function() {
-        var amountETH = ether(66666);
-        var remaining = await this.crowdsale.tokensRemaining();
-        await this.crowdsale.buyTokens(investor, {value: amountETH, from: investor}).should.be.fulfilled;
-        await this.crowdsale.buyTokens(investor, {value: ether(1), from: investor}).should.be.rejected;
-        await this.crowdsale.buyTokens(investor, {value: ether(0.666), from: investor}).should.be.fulfilled;
+        await this.crowdsale.buyTokens(investor, {value: maxCapEth.minus(ether(1)), from: investor}).should.be.fulfilled;
+        await this.crowdsale.sendTransaction({value: ether(0.8), from: investor}).should.be.fulfilled;
+
+        await this.crowdsale.sendTransaction({value: ether(0.3), from: investor}).should.be.rejected;
+        await this.crowdsale.buyTokens(investor, {value: ether(0.3), from: investor}).should.be.rejected;
+
+        await this.crowdsale.buyTokens(investor, {value: ether(0.1), from: investor}).should.be.fulfilled;
+        await this.crowdsale.sendTransaction({value: ether(0.1), from: investor}).should.be.fulfilled;
         var remaining = await this.crowdsale.tokensRemaining();
         remaining.should.be.bignumber.equal(0);
       });
 
       it('should not leave orphans', async function() {
-        // 66666.666 ether purchase should buy max cap tokens
+        // maxCapEth ether purchase should buy max cap tokens
         // and we expect the orphaned to be gifted to the last valid purchase
-        var amountETH = ether(66666);
-        await this.crowdsale.buyTokens(investor, {value: amountETH, from: investor}).should.be.fulfilled;
+        await this.crowdsale.buyTokens(investor, {value: maxCapEth.minus(ether(0.6)), from: investor}).should.be.fulfilled;
         var remaining = await this.crowdsale.tokensRemaining();
         var tokens1 = await this.token.balanceOf(purchaser);
         await this.crowdsale.buyTokens(purchaser, {value: ether(0.6), from: purchaser});
@@ -299,9 +350,9 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, n
 
       it('should not over-gift orphans', async function() {
         // last purchase should not be gifted if the remaining tokens is greater than min purchase (0.1 Ether)
-        var amountETH = ether(66666);
-        await this.crowdsale.buyTokens(investor, {value: amountETH, from: investor}).should.be.fulfilled;
+        await this.crowdsale.buyTokens(investor, {value: maxCapEth.minus(ether(0.6)), from: investor}).should.be.fulfilled;
         await this.crowdsale.buyTokens(purchaser, {value: ether(0.5), from: purchaser}).should.be.fulfilled;
+        (await this.crowdsale.tokensRemaining()).should.be.bignumber.gt(0);
         (await this.crowdsale.hasEnded()).should.be.equal(false);
       });
     });
