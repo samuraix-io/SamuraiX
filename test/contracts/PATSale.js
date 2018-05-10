@@ -41,9 +41,35 @@ contract('PATSale', async function([owner, manager1, wallet, investor, purchaser
   let maxUInt = (new BigNumber(2)).pow(256).minus(1);
   let overUInt = (new BigNumber(2)).pow(256);
 
-  before(async function() {
-    //Advance to the next block to correctly read time in the solidity "now" function
+  beforeEach(async function () {
     await advanceBlock();
+
+    this.startTime = latestTime() + duration.minutes(1);
+    this.endTime = this.startTime + duration.hours(1);
+    this.registeredUser = await RegisteredUsers.new();
+    this.manageListingFee = await ManageListingFee.deployed();
+    this.manageReserveFunds = await ManageReserveFunds.deployed();
+    this.raxToken = await RAXToken.new(this.registeredUser.address);
+    await this.registeredUser.addRegisteredUser(investor, false);
+    await this.registeredUser.addRegisteredUser(purchaser, false);
+    await this.registeredUser.addRegisteredUser(purchaser2, false );
+    await this.registeredUser.addRegisteredUser(wallet, false);
+    await this.registeredUser.addRegisteredUser(newWallet, false);
+
+    this.token = await PATToken.new(this.registeredUser.address, id,
+                                managers, name, symbol, fixedLinkDoc,
+                                fixedHashDoc, varLinkDoc, varHashDoc);
+    this.crowdsale = await PATSale.new(this.registeredUser.address, this.raxToken.address,
+                                      this.token.address, this.manageListingFee.address,
+                                      this.manageReserveFunds.address, this.startTime,
+                                      this.endTime, wallet, minCap, maxCap, ethPATRate,
+                                      ethRAXRate, listingFeeRate, reserveFundRate);
+
+    this.afterEndTime = this.endTime + duration.seconds(1);
+    const tokenOwner = await this.token.owner();
+    await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
+    this.vaultAddress = await this.crowdsale.getVaultAddress();
+    await this.registeredUser.addRegisteredUser(this.vaultAddress, true);
   });
 
   describe('deployment', function() {
@@ -97,34 +123,6 @@ contract('PATSale', async function([owner, manager1, wallet, investor, purchaser
   describe('time dependant', function() {
     var value = ether(10);
     var amountRAX = value.times(ethRAXRate);
-
-    beforeEach(async function () {
-      this.startTime = latestTime() + duration.minutes(1);
-      this.endTime = this.startTime + duration.hours(1);
-      this.registeredUser = await RegisteredUsers.new();
-      this.manageListingFee = await ManageListingFee.deployed();
-      this.manageReserveFunds = await ManageReserveFunds.deployed();
-      this.raxToken = await RAXToken.new(this.registeredUser.address);
-      this.registeredUser.addRegisteredUser(investor);
-      this.registeredUser.addRegisteredUser(purchaser);
-      this.registeredUser.addRegisteredUser(purchaser2);
-      await this.registeredUser.addRegisteredUser(wallet);
-
-      this.token = await PATToken.new(this.registeredUser.address, id,
-                                  managers, name, symbol, fixedLinkDoc,
-                                  fixedHashDoc, varLinkDoc, varHashDoc);
-      this.crowdsale = await PATSale.new(this.registeredUser.address, this.raxToken.address,
-                                        this.token.address, this.manageListingFee.address,
-                                        this.manageReserveFunds.address, this.startTime,
-                                        this.endTime, wallet, minCap, maxCap, ethPATRate,
-                                        ethRAXRate, listingFeeRate, reserveFundRate);
-
-      this.afterEndTime = this.endTime + duration.seconds(1);
-      const tokenOwner = await this.token.owner();
-      await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
-      this.vaultAddress = await this.crowdsale.getVaultAddress();
-      await this.registeredUser.addRegisteredUser(this.vaultAddress);
-    });
 
     describe('before start', function () {
       it('should reject payments before start', async function () {
@@ -395,36 +393,8 @@ contract('PATSale', async function([owner, manager1, wallet, investor, purchaser
     var tokensRemainingBefore = maxCap;
 
     beforeEach(async function() {
-      this.startTime = latestTime() + duration.minutes(1);
-      this.endTime = this.startTime + duration.hours(1);
-      this.registeredUser = await RegisteredUsers.deployed();
-      this.manageListingFee = await ManageListingFee.deployed();
-      this.manageReserveFunds = await ManageReserveFunds.deployed();
-      this.raxToken = await RAXToken.new(this.registeredUser.address);
-
-      this.token = await PATToken.new(this.registeredUser.address, id, managers, name,
-                                      symbol, fixedLinkDoc, fixedHashDoc, varLinkDoc,
-                                      varHashDoc);
-      this.crowdsale = await PATSale.new(this.registeredUser.address, this.raxToken.address,
-                                        this.token.address, this.manageListingFee.address,
-                                        this.manageReserveFunds.address, this.startTime,
-                                        this.endTime, wallet, minCap, maxCap, ethPATRate,
-                                        ethRAXRate, listingFeeRate, reserveFundRate);
-
-      await this.registeredUser.addRegisteredUser(investor);
-      await this.registeredUser.addRegisteredUser(purchaser);
-      await this.registeredUser.addRegisteredUser(purchaser2);
-      await this.registeredUser.addRegisteredUser(wallet);
-      await this.registeredUser.addRegisteredUser(newWallet);
-
-      this.afterEndTime = this.endTime + duration.seconds(1);
-      const tokenOwner = await this.token.owner();
-      await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
       await increaseTimeTo(this.startTime);
-
       await advanceBlock();
-      this.vaultAddress = await this.crowdsale.getVaultAddress();
-      await this.registeredUser.addRegisteredUser(this.vaultAddress);
     });
 
     describe('high-level purchase (fallback)', function () {

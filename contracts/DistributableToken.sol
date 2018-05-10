@@ -15,46 +15,47 @@ contract DistributableToken is TokenHolders, MintableToken {
   }
 
   function transfer(address _to, uint256 _value) public returns(bool) {
-    _checkTransferTarget(_to, false);
-
-    super.transfer(_to, _value);
-    return true;
-  }
-
-  function transferSpecial(address _to, uint256 _value) public returns(bool) {
-    _checkTransferTarget(_to, true);
+    _checkTransferTarget(_to);
 
     super.transfer(_to, _value);
     return true;
   }
 
   function transferFrom(address _from, address _to, uint256 _value) public returns(bool) {
-    _checkTransferTarget(_to, false);
+    _checkTransferTarget(_to);
 
     super.transferFrom(_from, _to, _value);
     return true;
   }
 
-  function transferFromSpecial(address _from, address _to, uint256 _value) public returns(bool) {
-    _checkTransferTarget(_to, true);
-
-    super.transferFrom(_from, _to, _value);
-    return true;
-  }
-
-  function _checkTransferTarget(address _to, bool _isSpecial) internal {
+  function _checkTransferTarget(address _to) internal {
     require(regUsers.isUserRegistered(_to));
 
     if (!isHolder(_to)) {
-      if (_isSpecial) {
-        this.addSpecialHolder(_to);
-      } else {
-        this.addNormalHolder(_to);
-      }
+      this.addHolder(_to);
     }
   }
 
-  function calculateProfit(uint256 _totalProfit, address _holder) public view returns(uint256);
+  function calculateProfit(
+    uint256 _totalProfit,
+    uint256 _totalBalance,
+    address _holder)
+  public view returns(uint256);
+
+  function totalBalanceOfNormalHolders() public view returns(uint256) {
+    uint256 _total = 0;
+    uint256 _count = getTheNumberOfHolders();
+
+    for (uint256 _i = 0; _i < _count; ++_i) {
+      address _holder = getHolderAddress(_i);
+      if (regUsers.isSpecialUser(_holder)) continue;
+
+      uint256 _balance = balanceOf(_holder);
+      _total = _total.add(_balance);
+    }
+
+    return _total;
+  }
 
   function getID() public view returns(uint256) {
     return id;

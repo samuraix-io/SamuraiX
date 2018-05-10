@@ -1,4 +1,5 @@
 const DistributeRAX = artifacts.require("./DistributeRAX.sol");
+const RegisteredUsers = artifacts.require ("./RegisteredUsers.sol");
 const RAXToken = artifacts.require("./RAXToken.sol");
 
 module.exports = function(deployer, network) {
@@ -12,12 +13,18 @@ module.exports = function(deployer, network) {
       default:
         throw new Error ("unsupported network");
     }
+
     let raxToken;
-    deployer.then(() => {
+    let registeredUser;
+
+    deployer.then (() => {
+      return RegisteredUsers.deployed();
+    }).then ((inst) => {
+      registeredUser = inst;
       return RAXToken.deployed();
     }).then((inst) => {
       raxToken = inst;
-      return deployer.deploy(DistributeRAX, raxToken.address, {overwrite: overwrite});
+      return deployer.deploy(DistributeRAX, registeredUser.address, raxToken.address, {overwrite: overwrite});
     }).catch((err) => {
       console.error(err);
       process.exit(1);

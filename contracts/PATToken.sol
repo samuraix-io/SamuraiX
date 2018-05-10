@@ -97,17 +97,23 @@ contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Manage
   }
 
   /**
-   * @dev Calculates profit to distribute to a specified token holder.
+   * @dev Calculates profit to distribute to a specified token normal holder.
    * @param _totalProfit Total profit.
-   * @param _holder Token holder address.
+   * @param _totalBalance Total tokens of normal holders.
+   * @param _holder Token normal holder address.
    * @return Profit value relevant to the token holder.
    */
-  function calculateProfit(uint256 _totalProfit, address _holder) public view returns(uint256) {
-    require(_totalProfit > 0);
-    require(isNormalHolder(_holder));
+   function calculateProfit(
+     uint256 _totalProfit,
+     uint256 _totalBalance,
+     address _holder)
+   public view returns(uint256) {
+     require(_totalProfit > 0);
+     require(_totalBalance > 0);
+     require(isHolder(_holder));
 
-    uint256 _balance = balanceOf(_holder);
-    uint256 _profit = (_balance.mul(_totalProfit)).div(TOTAL_TOKENS);
-    return _profit;
-  }
+     uint256 _balance = balanceOf(_holder);
+     uint256 _profit = (_balance.mul(_totalProfit)).div(_totalBalance);
+     return _profit;
+   }
 }

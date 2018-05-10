@@ -3,6 +3,7 @@ pragma solidity ^0.4.20;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./DistributableToken.sol";
 import "./PATToken.sol";
+import './RegisteredUsers.sol';
 
 /**
  * @title DistributeBase.
@@ -11,6 +12,8 @@ import "./PATToken.sol";
  */
 contract DistributeBase is Ownable {
   using SafeMath for uint256;
+
+  RegisteredUsers public regUsers;
 
   /**
    * Event for profit distributed logging.
@@ -23,26 +26,51 @@ contract DistributeBase is Ownable {
   event ProfitDistributed(uint256 _coinId, DistributableToken _token, address[] _holders, uint256[] _profits);
 
   /**
-   * @dev A base function for distribute profit to all holders of the real asset.
-   * This function will call _approveIncomes in Sub-classes for actually forwarding the money.
-   * @param _token Address of token contract which its token holders will be distribute profits.
-   * @param _totalProfit Total profit to distribute to all holders.
+   * @param _regUsers A contract to check whether an account is registered or not.
+   */
+  function DistributeBase(RegisteredUsers _regUsers) {
+    regUsers = _regUsers;
+  }
+
+  /**
+   * @dev A base function for distribute profit to all normal holders of the real asset.
+   * This function will call _approveIncomes in Sub-classes for
+   * actually forwarding the money. If total shares of the holders is less
+   * than the total profit, the remainder will be send back to the msg.sender.
+   * @param _token Address of token contract which its token normal holders will be distribute profits.
+   * @param _totalProfit Total profit to distribute.
    */
   function _distributeProfit(DistributableToken _token, uint256 _totalProfit) internal {
     require(_totalProfit > 0);
 
-    uint256 _holdersCount = _token.getTheNumberOfNormalHolders();
-    address[] memory _holders = new address[](_holdersCount);
-    uint256[] memory _profits = new uint256[](_holdersCount);
+    uint256 _count = _token.getTheNumberOfHolders();
+    address[] memory _holders = new address[](_count);
+    uint256[] memory _profits = new uint256[](_count);
 
-    for (uint256 i = 0; i < _holdersCount; ++i) {
-      address _holder = _token.getNormalHolderAddress(i);
-      uint256 _profit = _token.calculateProfit(_totalProfit, _holder);
-      _profits[i] = _profit;
-      _holders[i] = _holder;
+    uint256 _totalBalance = _token.totalBalanceOfNormalHolders();
+    uint256 _totalShare = 0;
+
+    for (uint256 _i = 0; _i < _count; ++_i) {
+      address _holder = _token.getHolderAddress(_i);
+      _holders[_i] = _holder;
+      if (regUsers.isSpecialUser(_holder)) {
+        _profits[_i] = 0;
+        continue;
+      }
+
+      uint256 _profit = _token.calculateProfit(_totalProfit, _totalBalance, _holder);
+      _profits[_i] = _profit;
+      _totalShare = _totalShare.add(_profit);
     }
 
+    require(_totalShare <= _totalProfit);
+
     _approveIncomes(_token, _holders, _profits);
+
+    uint256 _remain = _totalProfit.sub(_totalShare);
+    if (_remain > 0) {
+      _sendRemainder(_remain);
+    }
   }
 
   /**
@@ -52,4 +80,11 @@ contract DistributeBase is Ownable {
    * @param _profits Relevant profits to distribute to holders.
    */
   function _approveIncomes(DistributableToken _token, address[] _holders, uint256[] _profits) internal;
+
+  /**
+   * @dev Sub-classes must override to actually send the remainder
+   * back to the msg.sender of distributeProfit function.
+   * @param _amount Amount of the remainder.
+   */
+  function _sendRemainder(uint256 _amount) internal;
 }

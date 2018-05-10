@@ -65,8 +65,9 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
       this.afterEndTime = this.endTime + duration.seconds(1);
       const tokenOwner = await this.token.owner();
       await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
-      await this.registeredUser.addRegisteredUser(investor).should.be.fulfilled;
-      await this.registeredUser.addRegisteredUser(purchaser).should.be.fulfilled;
+      await this.registeredUser.addRegisteredUser(investor, false).should.be.fulfilled;
+      await this.registeredUser.addRegisteredUser(purchaser, false).should.be.fulfilled;
+      await this.registeredUser.addRegisteredUser(other, false).should.be.fulfilled;
     });
 
     describe('before start', function () {
@@ -158,9 +159,6 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
       this.afterEndTime = this.endTime + duration.seconds(1);
       const tokenOwner = await this.token.owner();
       await this.token.transferOwnership(this.crowdsale.address, {from: tokenOwner});
-      await this.registeredUser.addRegisteredUser(investor).should.be.fulfilled;
-      await this.registeredUser.addRegisteredUser(purchaser).should.be.fulfilled;
-      await this.registeredUser.addRegisteredUser(other).should.be.fulfilled;
       await increaseTimeTo(this.startTime);
       this.pre = {
         "totalSupply": 0,

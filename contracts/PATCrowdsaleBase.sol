@@ -107,7 +107,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     tokensSold = tokensSold.add(_tokens);
 
     getTokenContract().mint(_beneficiary, _tokens);
-    getTokenContract().addNormalHolder(_beneficiary);
+    getTokenContract().addHolder(_beneficiary);
     return _tokens;
   }
 

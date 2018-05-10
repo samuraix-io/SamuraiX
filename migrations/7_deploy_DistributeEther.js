@@ -1,3 +1,4 @@
+const RegisteredUsers = artifacts.require ("./RegisteredUsers.sol");
 const DistributeEther = artifacts.require("./DistributeEther.sol");
 
 module.exports = function(deployer, network) {
@@ -11,7 +12,15 @@ module.exports = function(deployer, network) {
       default:
         throw new Error ("unsupported network");
     }
-    deployer.deploy(DistributeEther, {overwrite: overwrite}).then (() => {
+
+    let registeredUser;
+
+    deployer.then (() => {
+      return RegisteredUsers.deployed();
+    }).then ((inst) => {
+      registeredUser = inst;
+      return deployer.deploy(DistributeEther, registeredUser.address, {overwrite: overwrite});
+    }).then(() => {
         return DistributeEther.deployed();
     }).catch((err) => {
         console.error(err);

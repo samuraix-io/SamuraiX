@@ -7,7 +7,11 @@ import "./RAXToken.sol";
 contract DistributeRAX is DistributeBase {
   RAXToken raxToken;
 
-  function DistributeRAX(RAXToken _raxToken) {
+  /**
+   * @param _regUsers A contract to check whether an account is registered or not.
+   */
+  function DistributeRAX(RegisteredUsers _regUsers, RAXToken _raxToken)
+  DistributeBase(_regUsers) {
     raxToken = _raxToken;
   }
 
@@ -27,5 +31,11 @@ contract DistributeRAX is DistributeBase {
 
     uint256 _coinId = raxToken.getID();
     emit ProfitDistributed(_coinId, _token, _holders, _profits);
+  }
+
+  function _sendRemainder(uint256 _amount) internal {
+    require(_amount > 0);
+
+    raxToken.transfer(msg.sender, _amount);
   }
 }
