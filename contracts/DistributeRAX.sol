@@ -34,8 +34,5 @@ contract DistributeRAX is DistributeBase {
   }
 
   function _sendRemainder(uint256 _amount) internal {
-    require(_amount > 0);
-
-    raxToken.transfer(msg.sender, _amount);
   }
 }
