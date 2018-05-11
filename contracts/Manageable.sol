@@ -47,16 +47,6 @@ contract Manageable is Ownable {
   }
 
   /**
-   * @dev Adds a specified account into the managers list.
-   * @param _manager Address of the new manager.
-   */
-  function addManager(address _manager) internal onlyOwner {
-    require(_manager != 0x0);
-
-    managers.push(_manager);
-  }
-
-  /**
    * @dev Gets address of a manager at a specified index in the managers list.
    * @param _index Index of the manager to retrieve.
    * @return Address of the relevant manager.
