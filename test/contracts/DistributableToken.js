@@ -31,9 +31,33 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
     token = await deployTokenCb(registeredUsers);
   });
 
+  describe('isNormalHolder()', function() {
+    it('should return false with unregistered user', async function() {
+      await token.mint(unregisteredUser, bn.tokens(100));
+      await token.addHolder(unregisteredUser);
+      (await token.isNormalHolder(unregisteredUser)).should.be.equal(false);
+    });
+
+    it('should return false with special holder', async function() {
+      await token.mint(specialUser, bn.tokens(100));
+      await token.addHolder(specialUser);
+      (await token.isNormalHolder(specialUser)).should.be.equal(false);
+    });
+
+    it('should return true with normal holder', async function() {
+      await token.mint(investor, bn.tokens(100));
+      await token.addHolder(investor);
+      (await token.isNormalHolder(investor)).should.be.equal(true);
+    });
+  });
+
   describe('totalBalanceOfNormalHolders()', function() {
     it('should have expected initial value', async function() {
-      (await token.totalBalanceOfNormalHolders({from: investor})).should.be.bignumber.equal(0);
+      var ret = await token.totalBalanceOfNormalHolders({from: investor});
+      var count = ret[0];
+      var totalBalance = ret[1];
+      count.should.be.bignumber.equal(0);
+      totalBalance.should.be.bignumber.equal(0);
     });
 
     it('when there are some normal holders', async function() {
@@ -49,8 +73,31 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
       await token.mint(beneficiary1, holder3Balance);
       await token.addHolder(beneficiary1);
 
-      var total = await token.totalBalanceOfNormalHolders({from: investor}).should.be.fulfilled;
-      total.should.be.bignumber.equal(expectedTotal);
+      var ret = await token.totalBalanceOfNormalHolders({from: investor}).should.be.fulfilled;
+      var count = ret[0];
+      var totalBalance = ret[1];
+      count.should.be.bignumber.equal(3);
+      totalBalance.should.be.bignumber.equal(expectedTotal);
+    });
+
+    it('should not include balance of unregistered users', async function() {
+      var holder1Balance = bn.tokens(10**7);
+      var holder2Balance = bn.tokens(10**5 + 8**3);
+      var unregisteredHolderBalance = bn.tokens(10**6 + 222);
+      var expectedTotal = holder1Balance.plus(holder2Balance);
+
+      await token.mint(investor, holder1Balance);
+      await token.addHolder(investor);
+      await token.mint(purchaser, holder2Balance);
+      await token.addHolder(purchaser);
+      await token.mint(unregisteredUser, unregisteredHolderBalance);
+      await token.addHolder(unregisteredUser);
+
+      var ret  = await token.totalBalanceOfNormalHolders({from: investor}).should.be.fulfilled;
+      var count = ret[0];
+      var totalBalance = ret[1];
+      count.should.be.bignumber.equal(2);
+      totalBalance.should.be.bignumber.equal(expectedTotal);
     });
 
     it('should not include balance of special users', async function() {
@@ -69,8 +116,11 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
       await token.mint(specialUser, specialHolderBalance);
       await token.addHolder(specialUser);
 
-      var total = await token.totalBalanceOfNormalHolders({from: investor}).should.be.fulfilled;
-      total.should.be.bignumber.equal(expectedTotal);
+      var ret  = await token.totalBalanceOfNormalHolders({from: investor}).should.be.fulfilled;
+      var count = ret[0];
+      var totalBalance = ret[1];
+      count.should.be.bignumber.equal(3);
+      totalBalance.should.be.bignumber.equal(expectedTotal);
     });
   });
 
@@ -184,18 +234,10 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
   });
 
   describe('transfer()', function() {
-    it('should allow to transfer tokens to a registered user', async function() {
+    it('should allow to transfer tokens', async function() {
       var amount = bn.tokens(100);
       await token.mint(investor, amount).should.be.fulfilled;
-      (await registeredUsers.isUserRegistered(purchaser)).should.be.equal(true);
       await token.transfer(purchaser, amount, {from: investor}).should.be.fulfilled;
-    });
-
-    it('should reject transferring tokens to any unregistered users', async function() {
-      var amount = bn.tokens(100);
-      await token.mint(investor, amount).should.be.fulfilled;
-      (await registeredUsers.isUserRegistered(unregisteredUser)).should.be.equal(false);
-      await token.transfer(unregisteredUser, amount, {from: investor}).should.be.rejected;
     });
 
     it('should add beneficiary address to the holders list', async function () {
@@ -210,20 +252,11 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
   });
 
   describe('transferFrom()', function() {
-    it('should allow to transfer tokens to a registered user', async function() {
+    it('should allow to transfer tokens', async function() {
       var amount = bn.tokens(100);
       await token.mint(investor, amount).should.be.fulfilled;
-      (await registeredUsers.isUserRegistered(beneficiary2)).should.be.equal(true);
       await token.approve(beneficiary1, amount, {from: investor}).should.be.fulfilled;
       await token.transferFrom(investor, beneficiary2, amount, {from: beneficiary1}).should.be.fulfilled;
-    });
-
-    it('should reject transferring tokens to any unregistered users', async function() {
-      var amount = bn.tokens(100);
-      await token.mint(investor, amount).should.be.fulfilled;
-      (await registeredUsers.isUserRegistered(unregisteredUser)).should.be.equal(false);
-      await token.approve(beneficiary1, amount, {from: investor}).should.be.fulfilled;
-      await token.transferFrom(investor, unregisteredUser, amount, {from: beneficiary1}).should.be.rejected;
     });
 
     it('should add beneficiary address to the holders list', async function () {

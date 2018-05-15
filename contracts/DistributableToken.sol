@@ -29,8 +29,6 @@ contract DistributableToken is TokenHolders, MintableToken {
   }
 
   function _checkTransferTarget(address _to) internal {
-    require(regUsers.isUserRegistered(_to));
-
     if (!isHolder(_to)) {
       this.addHolder(_to);
     }
@@ -42,19 +40,29 @@ contract DistributableToken is TokenHolders, MintableToken {
     address _holder)
   public view returns(uint256);
 
-  function totalBalanceOfNormalHolders() public view returns(uint256) {
-    uint256 _total = 0;
-    uint256 _count = getTheNumberOfHolders();
+  function isNormalHolder(address _addr) public view returns(bool) {
+    require(isHolder(_addr));
 
-    for (uint256 _i = 0; _i < _count; ++_i) {
+    return (regUsers.isUserRegistered(_addr) && !regUsers.isSpecialUser(_addr));
+  }
+
+  function totalBalanceOfNormalHolders() public view returns(uint256, uint256) {
+    uint256 _holdersCount = getTheNumberOfHolders();
+    uint256 _normalCount = 0;
+    uint256 _totalBalance = 0;
+
+    for (uint256 _i = 0; _i < _holdersCount; ++_i) {
       address _holder = getHolderAddress(_i);
-      if (regUsers.isSpecialUser(_holder)) continue;
+      if (!isNormalHolder(_holder)) continue;
 
       uint256 _balance = balanceOf(_holder);
-      _total = _total.add(_balance);
+      if (_balance > 0) {
+        _normalCount = _normalCount.add(1);
+        _totalBalance = _totalBalance.add(_balance);
+      }
     }
 
-    return _total;
+    return (_normalCount, _totalBalance);
   }
 
   function getID() public view returns(uint256) {

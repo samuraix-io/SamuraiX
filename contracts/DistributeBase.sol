@@ -43,22 +43,18 @@ contract DistributeBase is Ownable {
   function _distributeProfit(DistributableToken _token, uint256 _totalProfit) internal {
     require(_totalProfit > 0);
 
-    uint256 _count = _token.getTheNumberOfHolders();
-    address[] memory _holders = new address[](_count);
-    uint256[] memory _profits = new uint256[](_count);
-
-    uint256 _totalBalance = _token.totalBalanceOfNormalHolders();
+    var _holdersCount = _token.getTheNumberOfHolders();
+    var (_normalCount, _totalBalance) = _token.totalBalanceOfNormalHolders();
+    address[] memory _holders = new address[](_normalCount);
+    uint256[] memory _profits = new uint256[](_normalCount);
     uint256 _totalShare = 0;
 
-    for (uint256 _i = 0; _i < _count; ++_i) {
+    for (uint256 _i = 0; _i < _holdersCount; ++_i) {
       address _holder = _token.getHolderAddress(_i);
-      _holders[_i] = _holder;
-      if (regUsers.isSpecialUser(_holder)) {
-        _profits[_i] = 0;
-        continue;
-      }
+      if (!_token.isNormalHolder(_holder)) continue;
 
       uint256 _profit = _token.calculateProfit(_totalProfit, _totalBalance, _holder);
+      _holders[_i] = _holder;
       _profits[_i] = _profit;
       _totalShare = _totalShare.add(_profit);
     }
