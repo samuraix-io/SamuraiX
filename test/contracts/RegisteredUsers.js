@@ -10,22 +10,63 @@ contract('RegisteredUsers', function(accounts) {
     instance = await RegisteredUsers.deployed();
   });
 
-  it('should return false with unregistered address', async () => {
-    (await instance.isUserRegistered(accounts[0])).should.be.equal(false);
+  describe('addRegisteredUser()', function () {
+    it('should accept new address', async () => {
+      await instance.addRegisteredUser(accounts[1], false).should.be.fulfilled;
+    });
+
+    it('should accept new special user', async () => {
+      await instance.addRegisteredUser(accounts[0], true).should.be.fulfilled;
+    });
+
+    it('should reject existed address', async () => {
+      await instance.addRegisteredUser(accounts[1], false).should.be.rejected;
+    });
+
+    it('non-owner can not register new address', async () => {
+      await instance.addRegisteredUser(accounts[3], false, {from: accounts[2]}).should.be.rejected;
+    });
   });
 
-  it('should return true with registered address', async () => {
-    await instance.addRegisteredUser(accounts[1]).should.be.fulfilled;
-    (await instance.isUserRegistered(accounts[1])).should.be.equal(true);
+  describe('isUserRegistered()', function () {
+    it('should return false with unregistered address', async () => {
+      (await instance.isUserRegistered(accounts[9])).should.be.equal(false);
+    });
+
+    it('should return true with a normal registered address', async () => {
+      (await instance.isUserRegistered(accounts[1])).should.be.equal(true);
+    });
+
+    it('should return true with a special user address', async () => {
+      (await instance.isUserRegistered(accounts[0])).should.be.equal(true);
+    });
   });
 
-  it('registering new address should be fulfilled', async () => {
-    await instance.addRegisteredUser(accounts[2]).should.be.fulfilled;
-    (await instance.isUserRegistered(accounts[2])).should.be.equal(true);
+  describe('isSpecialUser()', function () {
+    it('should return false with a normal user address', async () => {
+      (await instance.isSpecialUser(accounts[1])).should.be.equal(false);
+    });
+
+    it('should return false with an unregistered user address', async () => {
+      (await instance.isNormalUser(accounts[2])).should.be.equal(false);
+    });
+
+    it('should return true with a special user address', async () => {
+      (await instance.isUserRegistered(accounts[0])).should.be.equal(true);
+    });
   });
 
-  it('non-owner can not register new address', async () => {
-    await instance.addRegisteredUser(accounts[3], {from: accounts[2]}).should.be.rejected;
-    (await instance.isUserRegistered(accounts[3])).should.be.equal(false);
+  describe('isNormalUser()', function () {
+    it('should return false with an unregistered user address', async () => {
+      (await instance.isNormalUser(accounts[2])).should.be.equal(false);
+    });
+
+    it('should return true with a normal user address', async () => {
+      (await instance.isNormalUser(accounts[1])).should.be.equal(true);
+    });
+
+    it('should return false with a special user address', async () => {
+      (await instance.isNormalUser(accounts[0])).should.be.equal(false);
+    });
   });
 });
