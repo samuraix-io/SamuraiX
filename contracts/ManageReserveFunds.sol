@@ -27,6 +27,7 @@ contract ManageReserveFunds is ManageFunds {
     require(_token.isManager(msg.sender));
     require(_beneficiary != 0x0);
     require(_amount > 0 && tokens[_token] >= _amount);
+    require(!isLocked(_token));
 
     tokens[_token] = tokens[_token].sub(_amount);
     this._distributeFunds(_token, msg.sender, _beneficiary, _amount);

@@ -42,6 +42,7 @@ contract ManageListingFee is ManageFunds {
   function distributeListingFee(PATToken _token) external {
     require(_token.isManager(msg.sender));
     require(tokens[_token] > 0);
+    require(!isLocked(_token));
 
     uint256 _amount = tokens[_token];
     tokens[_token] = 0;

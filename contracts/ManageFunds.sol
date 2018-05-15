@@ -14,6 +14,8 @@ contract ManageFunds is Ownable {
 
   mapping(address => uint256) tokens;
 
+  mapping(address => bool) unlocked;
+
   /**
    * Event for funds distributed logging.
    * @param _token Token contract address.
@@ -33,7 +35,28 @@ contract ManageFunds is Ownable {
     require(tx.origin == owner);
     require(_amount > 0);
 
+    unlocked[_token] = false;
     tokens[_token] = _amount;
+  }
+
+  /**
+   * @dev Checks whether manageable funds related to a specified token is locked or not.
+   * @return True if manageable funds related to the token is locked, otherwise false.
+   */
+  function isLocked(PATToken _token) public view returns(bool) {
+    return !unlocked[_token];
+  }
+
+  /**
+   * @dev Unlocks manageable funds related to a specified token.
+   * This function is called when a crowdsale ends so some token manager can distribute funds later.
+   * @param _token Token contract address.
+   */
+  function unlock(PATToken _token) public {
+    require(msg.sender == _token.owner());
+    require(tx.origin == owner);
+
+    unlocked[_token] = true;
   }
 
   /**

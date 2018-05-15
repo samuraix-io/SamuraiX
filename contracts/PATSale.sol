@@ -132,6 +132,16 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
      * internal functions
      */
 
+    /*
+     * @dev Unlocks manageable funds when crowdsale ends.
+     */
+    function finalization() internal {
+      manageListingFee.unlock(getTokenContract());
+      manageReserveFunds.unlock(getTokenContract());
+
+      super.finalization();
+    }
+
      /**
       * @dev Checks whether sale rate and reserve rate are valid.
       */

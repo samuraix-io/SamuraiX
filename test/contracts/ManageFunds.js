@@ -13,6 +13,8 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const bn = require('./helpers/bignumber.js');
+
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
 const PATToken = artifacts.require("./PATToken.sol");
 const RAXToken = artifacts.require("./RAXToken.sol");
@@ -23,12 +25,12 @@ const ManageReserveFunds = artifacts.require("./ManageReserveFunds.sol");
 
 contract('ManageListingFee and ManageReserveFunds', async function([owner, manager1, wallet, investor, purchaser, visitor, manager2, wallet1, wallet2, samuraiXWallet]) {
 
-  let listingFeeRate = 5;
-  let reserveFundsRate = 20;
-  let listingFeeTokens = new BigNumber(listingFeeRate * (10**6)*(10**18));
-  let reserveFundsTokens = new BigNumber(reserveFundsRate * (10**6)*(10**18));
-  let minCap = new BigNumber(50*(10**6)*(10**18));
-  let maxCap = new BigNumber(75*(10**6)*(10**18));
+  let listingFeeRate = 5;  // %
+  let reserveFundsRate = 20;  // %
+  let listingFeeTokens = bn.tokens(listingFeeRate * (10**6));
+  let reserveFundsTokens = bn.tokens(reserveFundsRate * (10**6));
+  let minCap = bn.tokens(50*(10**6));
+  let maxCap = bn.tokens(75*(10**6));
   let id = 4;
   let fixedLinkDoc = 'pat_doc_4';
   let fixedHashDoc = 'pat_hash_4';
@@ -45,20 +47,22 @@ contract('ManageListingFee and ManageReserveFunds', async function([owner, manag
     await advanceBlock()
   });
 
-  describe('setup', function () {
+  describe('distributes manageable funds', function () {
+    before(async function() {
+      this.registeredUser = await RegisteredUsers.deployed();
+      this.registeredUser.addRegisteredUser(investor, false);
+      this.registeredUser.addRegisteredUser(purchaser, false);
+      this.registeredUser.addRegisteredUser(samuraiXWallet, false);
+      this.registeredUser.addRegisteredUser(wallet1, false);
+      this.registeredUser.addRegisteredUser(wallet2, false);
+    });
+
     beforeEach(async function() {
       this.startTime = latestTime() + duration.minutes(1);
       this.endTime = this.startTime + duration.hours(1);
-      this.registeredUser = await RegisteredUsers.deployed();
       this.manageListingFee = await ManageListingFee.deployed();
       this.manageReserveFunds = await ManageReserveFunds.deployed();
       this.raxToken = await RAXToken.new(this.registeredUser.address);
-      this.registeredUser.addRegisteredUser(investor);
-      this.registeredUser.addRegisteredUser(purchaser);
-      this.registeredUser.addRegisteredUser(samuraiXWallet);
-      this.registeredUser.addRegisteredUser(wallet1);
-      this.registeredUser.addRegisteredUser(wallet2);
-
       this.token = await PATToken.new(this.registeredUser.address, id, managers, name,
                                       symbol, fixedLinkDoc, fixedHashDoc, varLinkDoc,
                                       varHashDoc);
@@ -76,14 +80,44 @@ contract('ManageListingFee and ManageReserveFunds', async function([owner, manag
     });
 
     describe('distributes listing fee', function () {
-      it('should be succeed when distributes listing fee to SamuraiX platform wallet', async function() {
+      it('should be rejected when crowdsale does not end', async function() {
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.rejected;
+      });
+
+      it('isLocked() should return true when crowdsale does not end', async function() {
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(true);
+      });
+
+      it('should be succeed when crowdsale ended', async function() {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(false);
+
         var tokens1 = await this.token.balanceOf(samuraiXWallet);
         await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
         var tokens2 = await this.token.balanceOf(samuraiXWallet);
         tokens2.should.be.bignumber.equal(tokens1.plus(listingFeeTokens));
       });
 
+      it("should log FundsDistributed event", async function () {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(false);
+
+        const {logs} = await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
+        const event = logs.find(e => e.event === 'FundsDistributed');
+        event.should.exist;
+        (event.args._token).should.equal(this.token.address);
+        (event.args._manager).should.be.bignumber.equal(manager1);
+        (event.args._beneficiary).should.be.bignumber.equal(samuraiXWallet);
+        (event.args._amount).should.be.bignumber.equal(listingFeeTokens);
+      });
+
       it('should be rejected when distributes listing fee twice', async function() {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(false);
+
         var tokens1 = await this.token.balanceOf(samuraiXWallet);
         await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
         await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.rejected;
@@ -91,30 +125,71 @@ contract('ManageListingFee and ManageReserveFunds', async function([owner, manag
         tokens2.should.be.bignumber.equal(tokens1.plus(listingFeeTokens));
       });
 
-      it('non-owner can not distribute listing fee', async function() {
+      it('non-manager can not distribute listing fee', async function() {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(false);
+
+        await this.manageListingFee.distributeListingFee(this.token.address, {from: owner}).should.be.rejected;
         await this.manageListingFee.distributeListingFee(this.token.address, {from: visitor}).should.be.rejected;
       });
     });
 
     describe('distributes reverving funds', function () {
-      it('should be succeed when distributes reserving funds to a registered address', async function() {
-        var amountTokens = new BigNumber((10**6)*(10**18));
+      it('should be rejected when crowdsale does not end', async function() {
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1,  bn.tokens(10**6), {from: manager1}).should.be.rejected;
+      });
+
+      it('isLocked() should return true when crowdsale does not end', async function() {
+        (await this.manageReserveFunds.isLocked(this.token.address)).should.be.equal(true);
+      });
+
+      it('should be succeed when crowdsale ended', async function() {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageReserveFunds.isLocked(this.token.address)).should.be.equal(false);
+
+        var amountTokens = bn.tokens(10**6);
         var tokens1 = await this.token.balanceOf(wallet1);
         await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens, {from: manager1}).should.be.fulfilled;
         var tokens2 = await this.token.balanceOf(wallet1);
         tokens2.should.be.bignumber.equal(tokens1.plus(amountTokens));
       });
 
-      it('non-owner can not withdraw reserving funds', async function() {
-        var amountTokens = new BigNumber(10*(10**18));
+      it("should log FundsDistributed event", async function () {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageReserveFunds.isLocked(this.token.address)).should.be.equal(false);
+
+        var amountTokens = bn.tokens(10);
+        const {logs} = await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens, {from: manager1}).should.be.fulfilled;
+        const event = logs.find(e => e.event === 'FundsDistributed');
+        event.should.exist;
+        (event.args._token).should.equal(this.token.address);
+        (event.args._manager).should.be.bignumber.equal(manager1);
+        (event.args._beneficiary).should.be.bignumber.equal(wallet1);
+        (event.args._amount).should.be.bignumber.equal(amountTokens);
+      });
+
+      it('non-manager can not withdraw reserving funds', async function() {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageReserveFunds.isLocked(this.token.address)).should.be.equal(false);
+
+        var amountTokens = bn.tokens(10);
+        await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens, {from: owner}).should.be.rejected;
         await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens, {from: visitor}).should.be.rejected;
       });
 
       it('can not withdraw an amount of tokens which exceeds the reserve rate', async function() {
-        // reserve funds rate = 20% of total tokens (which will be 20*(10**6)*(10**18))
-        var amountTokens1 = new BigNumber((10**6)*(10**18));
-        var amountTokens2 = new BigNumber(20*(10**6)*(10**18));
-        var amountTokens3 = new BigNumber(19*(10**6)*(10**18));
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageReserveFunds.isLocked(this.token.address)).should.be.equal(false);
+
+        // reserve funds rate = 20% of total tokens (which will be 20*(10**6) units)
+        var amountTokens1 = bn.tokens(10**6);
+        var amountTokens2 = bn.tokens(20*(10**6));
+        var amountTokens3 = bn.tokens(19*(10**6));
         var tokens1 = await this.token.balanceOf(wallet1);
         await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens1, {from: manager1}).should.be.fulfilled;
         await this.manageReserveFunds.withdrawReserveFunds(this.token.address, wallet1, amountTokens2, {from: manager1}).should.be.rejected;
@@ -126,8 +201,13 @@ contract('ManageListingFee and ManageReserveFunds', async function([owner, manag
 
     describe('multiple managers', function () {
       it('each manager can control manageable tasks', async function() {
-        var amountTokens1 = new BigNumber((10**6)*(10**18));
-        var amountTokens2 = new BigNumber(10*(10**6)*(10**18));
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(false);
+        (await this.manageReserveFunds.isLocked(this.token.address)).should.be.equal(false);
+
+        var amountTokens1 = bn.tokens(10**6);
+        var amountTokens2 = bn.tokens(10*(10**6));
         var tokens1 = await this.token.balanceOf(samuraiXWallet);
         await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
         var tokens2 = await this.token.balanceOf(samuraiXWallet);
@@ -155,6 +235,10 @@ contract('ManageListingFee and ManageReserveFunds', async function([owner, manag
       });
 
       it('listing fee should be distributed to the newly set SamuraiX platform wallet', async function() {
+        await increaseTimeTo(this.afterEndTime);
+        await this.crowdsale.finalize();
+        (await this.manageListingFee.isLocked(this.token.address)).should.be.equal(false);
+
         var tokens1 = await this.token.balanceOf(samuraiXWallet);
         var tokens2 = await this.token.balanceOf(wallet1);
         await this.manageListingFee.distributeListingFee(this.token.address, {from: manager1}).should.be.fulfilled;
