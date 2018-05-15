@@ -16,7 +16,7 @@ const standardToken = require("./StandardToken.js");
 const pausableToken = require("./PausableToken.js");
 const mintableToken = require("./MintableToken.js");
 const distributableToken = require("./DistributableToken.js");
-//const manageableToken = require("./ManageableToken.js");
+const manageableToken = require("./ManageableToken.js");
 
 const PATToken = artifacts.require("./PATToken.sol")
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol")
@@ -88,7 +88,7 @@ contract('PATToken', function (accounts) {
   });
 
   describe('Manageable Token', function() {
-    //manageableToken.check(RegisteredUsers, owner, managers, investor, purchaser, beneficiary, deploy);
+    manageableToken.check(RegisteredUsers, owner, managers, investor, purchaser, beneficiary, deploy);
   });
 
   async function deploy(registeredUsers) {

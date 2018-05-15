@@ -59,6 +59,11 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
       (await token.paused()).should.be.equal(true);
     });
 
+    it('non-owner can not invoke pause()', async function() {
+      await token.unpause().should.be.fulfilled;
+      await token.pause({from: purchaser}).should.be.rejected;
+    });
+
     it('should allow minting', async function() {
       await token.mint(investor, bn.tokens(1)).should.be.fulfilled;
     });
@@ -99,6 +104,11 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
 
     it('paused() should return false', async function() {
       (await token.paused()).should.be.equal(false);
+    });
+
+    it('non-owner can not invoke unpause()', async function() {
+      await token.pause().should.be.fulfilled;
+      await token.unpause({from: purchaser}).should.be.rejected;
     });
 
     it('should allow transfer()', async function() {
