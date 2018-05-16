@@ -43,7 +43,8 @@ contract DistributableToken is TokenHolders, MintableToken {
   function isNormalHolder(address _addr) public view returns(bool) {
     require(isHolder(_addr));
 
-    return (regUsers.isUserRegistered(_addr) && !regUsers.isSpecialUser(_addr));
+    bool _isNormalUser = regUsers.isUserRegistered(_addr) && !regUsers.isSpecialUser(_addr);
+    return (_isNormalUser && balanceOf(_addr) > 0);
   }
 
   function totalBalanceOfNormalHolders() public view returns(uint256, uint256) {
@@ -56,10 +57,8 @@ contract DistributableToken is TokenHolders, MintableToken {
       if (!isNormalHolder(_holder)) continue;
 
       uint256 _balance = balanceOf(_holder);
-      if (_balance > 0) {
-        _normalCount = _normalCount.add(1);
-        _totalBalance = _totalBalance.add(_balance);
-      }
+      _normalCount = _normalCount.add(1);
+      _totalBalance = _totalBalance.add(_balance);
     }
 
     return (_normalCount, _totalBalance);

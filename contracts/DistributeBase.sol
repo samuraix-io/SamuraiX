@@ -49,13 +49,16 @@ contract DistributeBase is Ownable {
     uint256[] memory _profits = new uint256[](_normalCount);
     uint256 _totalShare = 0;
 
+    uint256 _j = 0;
     for (uint256 _i = 0; _i < _holdersCount; ++_i) {
       address _holder = _token.getHolderAddress(_i);
       if (!_token.isNormalHolder(_holder)) continue;
+      if (_token.balanceOf(_holder) == 0) continue;
 
       uint256 _profit = _token.calculateProfit(_totalProfit, _totalBalance, _holder);
-      _holders[_i] = _holder;
-      _profits[_i] = _profit;
+      _holders[_j] = _holder;
+      _profits[_j] = _profit;
+      _j++;
       _totalShare = _totalShare.add(_profit);
     }
 
