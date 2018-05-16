@@ -16,7 +16,6 @@ import './ManageableToken.sol';
  *  - mints new tokens when purchased.
  *  - token holders can be distributed profit from asset manager.
  *  - contains real asset information.
- *  - attempts to reject token transfer to any unregistered users.
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  **/

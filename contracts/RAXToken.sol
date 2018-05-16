@@ -14,7 +14,6 @@ import './DistributableToken.sol';
  *  - can pause and unpause token transfer (and authorization) actions.
  *  - mints new tokens when purchased (rather than transferring tokens pre-granted to a holding account).
  *  - token holders can be distributed profit from asset manager.
- *  - attempts to reject token transfer to any unregistered users.
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  **/
