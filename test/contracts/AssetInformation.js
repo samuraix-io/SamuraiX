@@ -71,6 +71,17 @@ function check(RegisteredUsers, owner, managers, investor, deployTokenCb) {
     currentHash.should.be.equal(hash);
   });
 
+  it('updating running documents should log UpdateRunningDocuments event', async() => {
+    var link = "https://drive.google.com/open?id=1fJYL2V7A-r2t60ph1WNFGI9rxtvLJN27";
+    var hash = "edf770b7ce64db834a2c4b540af57ccc";
+    const {logs} = await token.changeRunningDocuments(link, hash, {from: managers[1]});
+    const event = logs.find(e => e.event === 'UpdateRunningDocuments');
+    event.should.exist;
+    (event.args._token).should.equal(token.address);
+    (event.args._linkDoc).should.equal(link);
+    (event.args._hashDoc).should.equal(hash);
+  });
+
   it('fix documents should not change when updating running documents', async() => {
     var fixValsBefore = await token.getFixedDocuments();
     var fixLinkBefore = fixValsBefore[0];
