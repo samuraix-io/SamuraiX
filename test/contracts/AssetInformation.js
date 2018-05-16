@@ -25,18 +25,31 @@ function check(RegisteredUsers, owner, managers, investor, deployTokenCb) {
     (await token.getManager(1)).should.be.equal(managers[1]);
   });
 
-  it('managers can update running documents', async() => {
-    await token.changeRunningDocuments("link1", "hash2", {from: managers[0]}).should.not.be.rejected;
-    await token.changeRunningDocuments("link2", "hash2", {from: managers[1]}).should.not.be.rejected;
+  it('multiple managers can update running documents', async() => {
+    await token.changeRunningDocuments(
+      "https://drive.google.com/open?id=1JYpdAqubjvHvUuurwX7om0dDcA5ycRhc",
+      "323202411a8393971877e50045576ed7",
+      {from: managers[0]}
+    ).should.not.be.rejected;
+
+    await token.changeRunningDocuments(
+      "https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY",
+      "743f5d72288889e94c076f8b21e07168",
+      {from: managers[1]}
+    ).should.not.be.rejected;
   });
 
   it('non-manager can not update running documents', async() => {
-    await token.changeRunningDocuments("link", "hash", {from: investor}).should.be.rejected;
+    await token.changeRunningDocuments(
+      "https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY",
+      "743f5d72288889e94c076f8b21e07168",
+      {from: investor}
+    ).should.be.rejected;
   });
 
   it('updating running documents should emit event', async() => {
-    var link = "link";
-    var hash = "hash";
+    var link = "https://drive.google.com/open?id=1fJYL2V7A-r2t60ph1WNFGI9rxtvLJN27";
+    var hash = "edf770b7ce64db834a2c4b540af57ccc";
 
     const {logs} = await token.changeRunningDocuments(link, hash, {from: managers[0]});
 
@@ -47,8 +60,8 @@ function check(RegisteredUsers, owner, managers, investor, deployTokenCb) {
   });
 
   it('updating running documents should update state', async() => {
-    var link = "test_link_1234";
-    var hash = "test_hash_1234";
+    var link = "https://drive.google.com/open?id=1fJYL2V7A-r2t60ph1WNFGI9rxtvLJN27";
+    var hash = "edf770b7ce64db834a2c4b540af57ccc";
     await token.changeRunningDocuments(link, hash, {from: managers[1]});
 
     var returnVals = await token.getRunningDocuments();
@@ -63,8 +76,8 @@ function check(RegisteredUsers, owner, managers, investor, deployTokenCb) {
     var fixLinkBefore = fixValsBefore[0];
     var fixHashBefore = fixValsBefore[1];
 
-    var link = "link";
-    var hash = "hash";
+    var link = "https://drive.google.com/open?id=1fJYL2V7A-r2t60ph1WNFGI9rxtvLJN27";
+    var hash = "edf770b7ce64db834a2c4b540af57ccc";
     await token.changeRunningDocuments(link, hash, {from: managers[0]}).should.be.fulfilled;
 
     var fixValsAfter = await token.getFixedDocuments();

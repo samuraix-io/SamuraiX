@@ -13,6 +13,8 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const bn = require('./helpers/bignumber.js');
+
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
 const PATToken = artifacts.require("./PATToken.sol");
 const RAXToken = artifacts.require("./RAXToken.sol");
@@ -22,24 +24,22 @@ const ManageReserveFunds = artifacts.require("./ManageReserveFunds.sol");
 
 contract('PATSale', async function([owner, manager1, wallet, investor, purchaser, other, manager2, purchaser2, newWallet, samuraiXWallet]) {
   const id = 4;
-  let fixedLinkDoc = 'pat_doc_4';
-  let fixedHashDoc = 'pat_hash_4';
-  let varLinkDoc = 'var_patDoc4';
-  let varHashDoc = 'var_hashDoc4';
-  let listingFeeRate = 5;
-  let reserveFundRate = 20;
-  let name = 'Namepat4';
-  let symbol = 'Symbol4';
-  let minCap = new BigNumber(50*(10**6)*(10**18));
-  let maxCap = new BigNumber(75*(10**6)*(10**18));
+  let fixedLinkDoc = 'https://drive.google.com/open?id=1JYpdAqubjvHvUuurwX7om0dDcA5ycRhc';
+  let fixedHashDoc = '323202411a8393971877e50045576ed7';
+  let varLinkDoc = 'https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY';
+  let varHashDoc = '743f5d72288889e94c076f8b21e07168';
+  let listingFeeRate = 5;  // %
+  let reserveFundRate = 20;  // %
+  let name = 'PAT_4';
+  let symbol = 'PAT';
+  let minCap = bn.tokens(50*(10**6));
+  let maxCap = bn.tokens(75*(10**6));
   let ethPATRate = 75000;
   let ethRAXRate = 75000;
   let managers = [manager1, manager2];
   let ethMinCap = minCap.dividedBy(ethPATRate).round(0, BigNumber.ROUND_HALF_UP);
   let ethMaxCap = maxCap.dividedBy(ethPATRate).round(0, BigNumber.ROUND_HALF_UP);
   let minAmount = finney(100);
-  let maxUInt = (new BigNumber(2)).pow(256).minus(1);
-  let overUInt = (new BigNumber(2)).pow(256);
 
   beforeEach(async function () {
     await advanceBlock();
@@ -519,13 +519,13 @@ contract('PATSale', async function([owner, manager1, wallet, investor, purchaser
 
       it('should reject an amount of RAX tokens which equals max uint (buyTokensUsingRaxApprove)', async function() {
         await this.raxToken.mint(purchaser2, amountRAX, {from: owner}).should.be.fulfilled;
-        await this.raxToken.approve(this.crowdsale.address, maxUInt, {from: purchaser2}).should.be.fulfilled;
+        await this.raxToken.approve(this.crowdsale.address, bn.MAX_UINT, {from: purchaser2}).should.be.fulfilled;
         await this.crowdsale.buyTokensUsingRaxApprove(purchaser2, {from: purchaser2}).should.be.rejected;
       });
 
       it('should reject an amount of RAX tokens which exceeds max uint (buyTokensUsingRaxApprove)', async function() {
         await this.raxToken.mint(purchaser2, amountRAX, {from: owner}).should.be.fulfilled;
-        await this.raxToken.approve(this.crowdsale.address, overUInt, {from: purchaser2}).should.be.fulfilled;
+        await this.raxToken.approve(this.crowdsale.address, bn.OVER_UINT, {from: purchaser2}).should.be.fulfilled;
         await this.crowdsale.buyTokensUsingRaxApprove(purchaser2, {from: purchaser2}).should.be.rejected;
       });
 

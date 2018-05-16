@@ -28,10 +28,10 @@ contract('PATToken', function (accounts) {
   let id = 2;
   let name = 'pat_2';
   let symbol = "pat";
-  let fixedLinkDoc = 'pat_doc_1';
-  let fixedHashDoc = 'pat_hash_1';
-  let varLinkDoc = 'var_patDoc1';
-  let varHashDoc = 'var_hashDoc1';
+  let fixedLinkDoc = 'https://drive.google.com/open?id=1JYpdAqubjvHvUuurwX7om0dDcA5ycRhc';
+  let fixedHashDoc = '323202411a8393971877e50045576ed7';
+  let varLinkDoc = 'https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY';
+  let varHashDoc = '743f5d72288889e94c076f8b21e07168';
 
   let owner = accounts[0];
   let investor = accounts[3];
