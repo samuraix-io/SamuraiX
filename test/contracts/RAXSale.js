@@ -12,12 +12,14 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const bn = require('./helpers/bignumber.js');
+
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
 const RAXToken = artifacts.require("./RAXToken.sol");
 const RAXSale = artifacts.require("./RAXSale.sol");
 
 contract('RAXSale', async function([owner, investor, wallet, purchaser, other, other1, newWallet]) {
-  let maxCap = new BigNumber(5*(10**9)*(10**18)); // 5 billion tokens
+  let maxCap = bn.tokens(5*(10**9)); // 5 billion tokens
   let ethRAXRate = 75000;
   let maxCapEth = maxCap.dividedBy(ethRAXRate).round(0, BigNumber.ROUND_DOWN);
   let minAmount = finney(100);
@@ -170,13 +172,12 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
     });
 
     describe('high-level purchase (fallback)', function () {
-      beforeEach(async function() {
-        this.txResult = await this.crowdsale.sendTransaction({value: value, from: investor});
+      before(async function() {
         await advanceBlock();
       });
 
       it('should log purchase event', async function () {
-        const {logs} = this.txResult;
+        const {logs} = await this.crowdsale.sendTransaction({value: value, from: investor});
         const event = logs.find(e => e.event === 'TokenPurchase');
 
         should.exist(event);
@@ -186,8 +187,8 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
         event.args.amount.should.be.bignumber.equal(expectedTokenAmount);
       });
 
-      it('buying tokens with an odd wei amount', async function () {
-        var amount = new BigNumber(123456789000000000);
+      it('buying tokens with an odd amount of ether', async function () {
+        var amount = new BigNumber(1234567890000000000);
         var tokens1 = await this.token.balanceOf(other);
         await this.crowdsale.sendTransaction({value: amount, from: other});
         var tokens2 = await this.token.balanceOf(other);
@@ -195,6 +196,8 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
       });
 
       it('the investor should become a token holder after buying tokens', async function() {
+        (await this.token.isHolder(investor)).should.be.equal(false);
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         (await this.token.isHolder(investor)).should.be.equal(true);
       });
 
@@ -209,44 +212,49 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
       });
 
       it('totalSupply should be increased', async function () {
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         const post = await this.token.totalSupply();
         post.minus(this.pre.totalSupply).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('tokensSold should be increased', async function () {
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         const post = await this.crowdsale.tokensSold();
         post.minus(this.pre.tokensSold).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('tokensRemaining should be decreased', async function () {
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         const post = await this.crowdsale.tokensRemaining();
         tokensRemainingBefore.minus(post).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('should assign tokens to sender', async function () {
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         const post = await this.token.balanceOf(investor);
         post.minus(this.pre.investorBalance).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('should forward funds to wallet', async function () {
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         const post = web3.eth.getBalance(wallet);
         post.minus(this.pre.walletBalance).should.be.bignumber.equal(value);
       });
 
       it('weiRaised should be increased', async function() {
+        await this.crowdsale.sendTransaction({value: value, from: investor});
         const post = await this.crowdsale.weiRaised();
         post.minus(this.pre.weiRaised).should.be.bignumber.equal(value);
       });
     });
 
     describe('low-level purchase (buyTokens)', function () {
-      beforeEach(async function() {
-        this.txResult = await this.crowdsale.buyTokens(investor, {value: value, from: purchaser});
+      before(async function() {
         await advanceBlock();
       });
 
       it('should log purchase event', async function () {
-        const {logs} = this.txResult;
+        const {logs} = await this.crowdsale.buyTokens(investor, {value: value, from: purchaser});
         const event = logs.find(e => e.event === 'TokenPurchase');
 
         should.exist(event);
@@ -256,12 +264,18 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
         event.args.amount.should.be.bignumber.equal(expectedTokenAmount);
       });
 
-      it('buying tokens with an odd wei amount', async function () {
-        var amount = new BigNumber(123456789000000000);
+      it('buying tokens with an odd amount of ether', async function () {
+        var amount = new BigNumber(1234567890000000000);
         var tokens1 = await this.token.balanceOf(other);
         await this.crowdsale.buyTokens(other, {value: amount, from: other});
         var tokens2 = await this.token.balanceOf(other);
         tokens2.should.be.bignumber.equal(tokens1.plus(amount.times(ethRAXRate)));
+      });
+
+      it('the investor should become a token holder after buying tokens', async function() {
+        (await this.token.isHolder(investor)).should.be.equal(false);
+        await this.crowdsale.buyTokens(investor, {value: value, from: investor}).should.be.fulfilled;
+        (await this.token.isHolder(investor)).should.be.equal(true);
       });
 
       it('should reject under minimum amount (0.1 Ether)', async function() {
@@ -275,31 +289,37 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
       });
 
       it('totalSupply should be increased', async function () {
+        await this.crowdsale.buyTokens(investor, {value: value, from: purchaser})
         const post = await this.token.totalSupply();
         post.minus(this.pre.totalSupply).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('tokensSold should be increased', async function () {
+        await this.crowdsale.buyTokens(investor, {value: value, from: purchaser})
         const post = await this.crowdsale.tokensSold();
         post.minus(this.pre.tokensSold).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('tokensRemaining should be decreased', async function () {
+        await this.crowdsale.buyTokens(investor, {value: value, from: purchaser})
         const post = await this.crowdsale.tokensRemaining();
         tokensRemainingBefore.minus(post).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('should assign tokens to beneficiary', async function () {
+        await this.crowdsale.buyTokens(investor, {value: value, from: purchaser})
         const post = await this.token.balanceOf(investor);
         post.minus(this.pre.investorBalance).should.be.bignumber.equal(expectedTokenAmount);
       });
 
       it('should forward funds to wallet', async function () {
+        await this.crowdsale.buyTokens(investor, {value: value, from: purchaser})
         const post = web3.eth.getBalance(wallet);
         post.minus(this.pre.walletBalance).should.be.bignumber.equal(value);
       });
 
       it('weiRaised should be increased', async function() {
+        await this.crowdsale.buyTokens(investor, {value: value, from: purchaser})
         const post = await this.crowdsale.weiRaised();
         post.minus(this.pre.weiRaised).should.be.bignumber.equal(value);
       });
@@ -369,9 +389,19 @@ contract('RAXSale', async function([owner, investor, wallet, purchaser, other, o
         await this.crowdsale.buyTokens(purchaser, {value: value, from: purchaser}).should.be.fulfilled;
       });
 
+      it('non-owner can not invoke pause()', async function() {
+        await this.crowdsale.pause({from: purchaser}).should.be.rejected;
+        await this.crowdsale.pause({from: investor}).should.be.rejected;
+      });
+
       it('should reject buying tokens when paused', async function() {
         await this.crowdsale.pause({from: owner}).should.be.fulfilled;
         await this.crowdsale.buyTokens(purchaser, {value: value, from: purchaser}).should.be.rejected;
+      });
+
+      it('non-owner can not invoke unpause()', async function() {
+        await this.crowdsale.unpause({from: purchaser}).should.be.rejected;
+        await this.crowdsale.unpause({from: investor}).should.be.rejected;
       });
 
       it('can unpause after paused', async function() {
