@@ -65,11 +65,6 @@ contract DistributeBase is Ownable {
     require(_totalShare <= _totalProfit);
 
     _approveIncomes(_token, _holders, _profits);
-
-    uint256 _remain = _totalProfit.sub(_totalShare);
-    if (_remain > 0) {
-      _sendRemainder(_remain);
-    }
   }
 
   /**
@@ -79,11 +74,4 @@ contract DistributeBase is Ownable {
    * @param _profits Relevant profits to distribute to holders.
    */
   function _approveIncomes(DistributableToken _token, address[] _holders, uint256[] _profits) internal;
-
-  /**
-   * @dev Sub-classes must override to actually send the remainder
-   * back to the msg.sender of distributeProfit function.
-   * @param _amount Amount of the remainder.
-   */
-  function _sendRemainder(uint256 _amount) internal;
 }

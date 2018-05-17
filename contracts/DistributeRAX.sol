@@ -32,7 +32,4 @@ contract DistributeRAX is DistributeBase {
     uint256 _coinId = raxToken.getID();
     emit ProfitDistributed(_coinId, _token, _holders, _profits);
   }
-
-  function _sendRemainder(uint256 _amount) internal {
-  }
 }

@@ -49,10 +49,4 @@ contract DistributeEther is DistributeBase {
 
     emit ProfitDistributed(0, _token, _holders, _profits);
   }
-
-  function _sendRemainder(uint256 _amount) internal {
-    require(_amount > 0);
-
-    msg.sender.transfer(_amount);
-  }
 }
