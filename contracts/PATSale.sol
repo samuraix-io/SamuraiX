@@ -100,15 +100,15 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       require(!managedTokensMinted);
       managedTokensMinted = true;
 
-      uint256 _totalTokens = getTokenContract().getTotalTokens();
+      uint256 _totalTokens = _getTokenContract().getTotalTokens();
       uint256 _listingFeeTokens = _totalTokens.mul(listingFeeRate).div(100);
       uint256 _reserveFundTokens = _totalTokens.mul(reserveFundRate).div(100);
 
-      getTokenContract().mint(manageListingFee, _listingFeeTokens);
-      manageListingFee.setTokens(getTokenContract(), _listingFeeTokens);
+      _getTokenContract().mint(manageListingFee, _listingFeeTokens);
+      manageListingFee.setTokens(_getTokenContract(), _listingFeeTokens);
 
-      getTokenContract().mint(manageReserveFunds, _reserveFundTokens);
-      manageReserveFunds.setTokens(getTokenContract(), _reserveFundTokens);
+      _getTokenContract().mint(manageReserveFunds, _reserveFundTokens);
+      manageReserveFunds.setTokens(_getTokenContract(), _reserveFundTokens);
     }
 
     /**
@@ -136,8 +136,8 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
      * @dev Unlocks manageable funds when crowdsale ends.
      */
     function finalization() internal {
-      manageListingFee.unlock(getTokenContract());
-      manageReserveFunds.unlock(getTokenContract());
+      manageListingFee.unlock(_getTokenContract());
+      manageReserveFunds.unlock(_getTokenContract());
 
       super.finalization();
     }
@@ -146,7 +146,7 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       * @dev Checks whether sale rate and reserve rate are valid.
       */
     function _checkRates() view internal {
-      uint256 _totalTokens = getTokenContract().getTotalTokens();
+      uint256 _totalTokens = _getTokenContract().getTotalTokens();
       uint256 _saleRate = (maxCap.mul(100)).div(_totalTokens);
       uint8 _totalPer = uint8(_saleRate) + listingFeeRate + reserveFundRate;
       require(uint8(100) == _totalPer);

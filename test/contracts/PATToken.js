@@ -8,6 +8,8 @@ const should = require('chai')
   .should();
 
 const bn = require('./helpers/bignumber.js');
+const hasNoEther = require("./HasNoEther.js");
+const reclaimTokens = require("./CanReclaimToken.js");
 const assetInfo = require("./AssetInformation.js");
 const manageable = require("./Manageable.js");
 const tokenHolders = require("./TokenHolders.js");
@@ -55,6 +57,14 @@ contract('PATToken', function (accounts) {
     });
   });
 
+  describe('HasNoEther', function() {
+      hasNoEther.check(accounts, deployContract);
+  });
+
+  describe('CanReclaimToken', function() {
+    reclaimTokens.check(RegisteredUsers, accounts, deployContract, deploy);
+  });
+
   describe('Mintable Token', function() {
     mintableToken.check(RegisteredUsers, accounts, deploy);
   });
@@ -95,5 +105,9 @@ contract('PATToken', function (accounts) {
     var _token = await PATToken.new(registeredUsers.address, id, managers, name, symbol,
                                     fixedLinkDoc, fixedHashDoc, varLinkDoc, varHashDoc);
     return _token;
+  }
+
+  async function deployContract() {
+    return deploy(await RegisteredUsers.deployed());
   }
 });

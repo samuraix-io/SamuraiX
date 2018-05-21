@@ -1,6 +1,8 @@
 pragma solidity ^0.4.20;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+
+import './ClaimableEx.sol';
 import "./DistributableToken.sol";
 import "./PATToken.sol";
 import './RegisteredUsers.sol';
@@ -9,8 +11,11 @@ import './RegisteredUsers.sol';
  * @title DistributeBase.
  * @dev This is a base contract for distributing profits earned from managing a real asset
  * to its all holders.
+ * This contract allows:
+ *   - to recover any ERC20 token received by transferring the balance to the contract owner.
+ *   - the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  */
-contract DistributeBase is Ownable {
+contract DistributeBase is ClaimableEx, CanReclaimToken {
   using SafeMath for uint256;
 
   RegisteredUsers public regUsers;

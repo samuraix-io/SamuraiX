@@ -4,6 +4,8 @@ import 'zeppelin-solidity/contracts/token/ERC20/PausableToken.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoEther.sol';
 import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
+
+import './ClaimableEx.sol';
 import './ManageableToken.sol';
 
 
@@ -19,7 +21,7 @@ import './ManageableToken.sol';
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  **/
-contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, ManageableToken {
+contract PATToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, PausableToken, ManageableToken {
   string public name;
   string public symbol;
 
@@ -51,6 +53,7 @@ contract PATToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Manage
     string _varDocsHash
   )
   Ownable()
+  ClaimableEx()
   Contactable()
   HasNoTokens()
   HasNoEther()

@@ -53,6 +53,10 @@ function check(RegisteredUsers, accounts, deployTokenCb) {
       (xferEvent.args.value).should.be.bignumber.equal(amount);
     });
 
+    it('non-owner can not mint', async function () {
+      await token.mint(investor, bn.tokens(1), {from: investor}).should.be.rejected;
+    });
+
     it('should not mint more than TOTAL_TOKENS', async function () {
       var totalTokens = await token.TOTAL_TOKENS();
       var totalSupply = await token.totalSupply();

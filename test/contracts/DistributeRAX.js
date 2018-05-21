@@ -6,6 +6,8 @@ const should = require('chai')
 
 const bn = require('./helpers/bignumber.js');
 const distributor = require('./Distributor.js');
+const claimableEx = require("./ClaimableEx.js");
+const reclaimTokens = require("./CanReclaimToken.js");
 
 const DistributeRAX = artifacts.require("./DistributeRAX.sol");
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
@@ -23,6 +25,20 @@ contract('DistributeRAX', function(accounts) {
   let varDocsLink = "https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY";
   let varDocsHash = "743f5d72288889e94c076f8b21e07168";
 
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
+  });
+
+  describe('CanReclaimToken', function() {
+    describe('RAX', function() {
+      reclaimTokens.check(RegisteredUsers, accounts, deployContract, deployRAXToken);
+    });
+
+    describe('PAT', function() {
+      reclaimTokens.check(RegisteredUsers, accounts, deployContract, deployPATToken);
+    });
+  });
+
   describe('distribute profit (RAX) to PAT token holders \n', function() {
     distributor.testRAX(RegisteredUsers, DistributeRAX, accounts, managers, deployPATToken, deployRAXToken);
   });
@@ -38,5 +54,11 @@ contract('DistributeRAX', function(accounts) {
 
   async function deployRAXToken(registeredUsers) {
     return  await RAXToken.new(registeredUsers.address);
+  }
+
+  async function deployContract() {
+    var regUsers = await RegisteredUsers.deployed();
+    var raxToken = deployRAXToken(regUsers);
+    return await DistributeRAX.new(regUsers.address, raxToken.address);
   }
 });

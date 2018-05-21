@@ -5,6 +5,8 @@ import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoContracts.sol';
 import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
+
+import './ClaimableEx.sol';
 import './RAXToken.sol';
 
 
@@ -19,8 +21,9 @@ import './RAXToken.sol';
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - allows child contract ownership to be transferred to this.owner.
  *  - allows wallet which receives sales proceeds to be updated.
+ *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  */
-contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, FinalizableCrowdsale {
+contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, ClaimableEx, FinalizableCrowdsale {
     using SafeMath for uint256;
 
     uint256 public tokensSold = 0;
@@ -35,6 +38,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
      */
     function RAXCrowdsale(RegisteredUsers _regUsers, MintableToken _token, uint256 _startTime, uint256 _endTime, address _ethWallet)
     Ownable()
+    ClaimableEx()
     Pausable()
     Contactable()
     HasNoTokens()
@@ -76,10 +80,17 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
         weiRaised = weiRaised.add(weiAmount);
         tokensSold = tokensSold.add(tokens);
 
-        RAXToken(token).mint(_beneficiary, tokens);
+        _getTokenContract().mint(_beneficiary, tokens);
         TokenPurchase(msg.sender, _beneficiary, weiAmount, tokens);
-        RAXToken(token).addHolder(_beneficiary);
+        _getTokenContract().addHolder(_beneficiary);
         _forwardFunds();
+    }
+
+    /**
+     * @dev Accepts ownership transfer of the token to this contract.
+     */
+    function claimTokenOwnership() onlyOwner public {
+      _getTokenContract().claimOwnership();
     }
 
     /**
@@ -88,7 +99,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
      */
     function tokenTransferOwnership(address _newOwner) public onlyOwner {
         require(hasEnded());
-        RAXToken(token).transferOwnership(_newOwner);
+        _getTokenContract().transferOwnership(_newOwner);
     }
 
     /**
@@ -127,7 +138,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
      * @dev Gets the token contract.
      * @return The token contract.
      */
-    function _getTokenContract() internal view returns(MintableToken) {
+    function _getTokenContract() internal view returns(RAXToken) {
         return RAXToken(token);
     }
 
@@ -147,7 +158,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Fin
     function finalization() internal {
         // if we own the token, pass ownership to our owner when finalized
         if(address(token) != address(0) && Ownable(token).owner() == address(this) && owner != address(0)) {
-            Ownable(token).transferOwnership(owner);
+            _getTokenContract().transferOwnership(owner);
         }
         super.finalization();
     }

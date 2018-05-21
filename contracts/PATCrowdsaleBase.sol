@@ -3,6 +3,8 @@ pragma solidity ^0.4.11;
 import 'zeppelin-solidity/contracts/ownership/HasNoContracts.sol';
 import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
+
+import './ClaimableEx.sol';
 import './CoinExchange.sol';
 import './PATToken.sol';
 import './RAXToken.sol';
@@ -24,8 +26,9 @@ import './RefundableExCrowdsale.sol';
  *  - allows end date to be updated.
  *  - any unregistered users can not buy tokens.
  *  - refundable.
+ *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  */
-contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableExCrowdsale {
+contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, ClaimableEx, CanReclaimToken, RefundableExCrowdsale {
   using SafeMath for uint256;
   using CoinExchange for uint256;
 
@@ -51,9 +54,11 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     uint256 _weiAmountGoal
   )
   Ownable()
+  ClaimableEx()
   Pausable()
   Contactable()
   HasNoContracts()
+  CanReclaimToken()
   Crowdsale(1, _ethWallet, _token)
   TimedCrowdsale(_startTime, _endTime)
   RefundableExCrowdsale(_raxToken, _weiAmountGoal)
@@ -69,7 +74,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
    */
   function setWallet(address _wallet) external {
     require(_wallet != 0x0);
-    require(getTokenContract().isManager(msg.sender));
+    require(_getTokenContract().isManager(msg.sender));
 
     _setWallet(_wallet);
   }
@@ -80,7 +85,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
    */
   function setEndTime(uint256 _endTime) external {
     require(_endTime > block.timestamp);
-    require(getTokenContract().isManager(msg.sender));
+    require(_getTokenContract().isManager(msg.sender));
 
     closingTime = _endTime;
   }
@@ -106,8 +111,8 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
     weiRaised = weiRaised.add(_weiAmount);
     tokensSold = tokensSold.add(_tokens);
 
-    getTokenContract().mint(_beneficiary, _tokens);
-    getTokenContract().addHolder(_beneficiary);
+    _getTokenContract().mint(_beneficiary, _tokens);
+    _getTokenContract().addHolder(_beneficiary);
     return _tokens;
   }
 
@@ -119,6 +124,13 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
   function hasEnded() public view returns(bool) {
     bool capReached = tokensRemaining() == 0;
     return super.hasClosed() || capReached;
+  }
+
+  /**
+   * @dev Accepts ownership transfer of the token to this contract.
+   */
+  function claimTokenOwnership() onlyOwner public {
+    _getTokenContract().claimOwnership();
   }
 
   /**
@@ -159,7 +171,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
   function finalization() internal {
     // if we own the token, pass ownership to our owner when finalized
     if(address(token) != address(0) && Ownable(token).owner() == address(this) && owner != address(0)) {
-        Ownable(token).transferOwnership(owner);
+        _getTokenContract().transferOwnership(owner);
     }
     super.finalization();
   }
@@ -168,7 +180,7 @@ contract PATCrowdsaleBase is Contactable, Pausable, HasNoContracts, RefundableEx
    * @dev Gets the token contract.
    * @return The token contract.
    */
-  function getTokenContract() internal view returns(PATToken) {
+  function _getTokenContract() internal view returns(PATToken) {
     return PATToken(token);
   }
 

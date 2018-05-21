@@ -2,14 +2,18 @@ pragma solidity ^0.4.20;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+
+import './ClaimableEx.sol';
 import './PATToken.sol';
 
 /**
  * @title Manage funds.
  * @dev This contract allows some asset (PAT token) manager to distribute
  * pre-mint tokens to a beneficiary wallet.
+ * It also attempts to reject ether sent and allows any ether held to be transferred out.
+ * This contract allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract ManageFunds is Ownable {
+contract ManageFunds is ClaimableEx, HasNoEther {
   using SafeMath for uint256;
 
   mapping(address => uint256) tokens;

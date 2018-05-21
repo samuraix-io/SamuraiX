@@ -5,6 +5,8 @@ const should = require('chai')
   .should();
 
 const distributor = require('./Distributor.js');
+const claimableEx = require("./ClaimableEx.js");
+const reclaimTokens = require("./CanReclaimToken.js");
 
 const DistributeEther = artifacts.require("./DistributeEther.sol");
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
@@ -21,6 +23,20 @@ contract('DistributeEther', function(accounts) {
   let varDocsLink = "https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY";
   let varDocsHash = "743f5d72288889e94c076f8b21e07168";
 
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
+  });
+
+  describe('CanReclaimToken', function() {
+    describe('RAX', function() {
+      reclaimTokens.check(RegisteredUsers, accounts, deployContract, deployRAXToken);
+    });
+
+    describe('PAT', function() {
+      reclaimTokens.check(RegisteredUsers, accounts, deployContract, deployPATToken);
+    });
+  });
+
   describe('distribute profit (ETH) to PAT token holders \n', function() {
     distributor.testEther(RegisteredUsers, DistributeEther, accounts, managers, deployPATToken);
   });
@@ -36,5 +52,10 @@ contract('DistributeEther', function(accounts) {
 
   async function deployRAXToken(registeredUsers) {
     return  await RAXToken.new(registeredUsers.address);
+  }
+
+  async function deployContract() {
+    var regUsers = await RegisteredUsers.deployed();
+    return await DistributeEther.new(regUsers.address).should.be.fulfilled;
   }
 });

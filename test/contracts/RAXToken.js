@@ -6,6 +6,8 @@ const should = require('chai')
   .should();
 
 const bn = require('./helpers/bignumber.js');
+const hasNoEther = require("./HasNoEther.js");
+const reclaimTokens = require("./CanReclaimToken.js");
 const tokenHolders = require("./TokenHolders.js");
 const basicToken = require("./BasicToken.js");
 const standardToken = require("./StandardToken.js");
@@ -36,6 +38,14 @@ contract('RAXToken', function (accounts) {
     });
   });
 
+  describe('HasNoEther', function() {
+      hasNoEther.check(accounts, deployContract);
+  });
+
+  describe('CanReclaimToken', function() {
+    reclaimTokens.check(RegisteredUsers, accounts, deployContract, deploy);
+  });
+
   describe('Mintable Token', function() {
     mintableToken.check(RegisteredUsers, accounts, deploy);
   });
@@ -63,5 +73,9 @@ contract('RAXToken', function (accounts) {
   async function deploy(registeredUsers) {
     var _token = await RAXToken.new(registeredUsers.address);
     return _token;
+  }
+
+  async function deployContract() {
+    return deploy(await RegisteredUsers.deployed());
   }
 });

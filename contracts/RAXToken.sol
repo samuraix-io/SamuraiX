@@ -4,6 +4,8 @@ import 'zeppelin-solidity/contracts/token/ERC20/PausableToken.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoEther.sol';
 import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
+
+import './ClaimableEx.sol';
 import './DistributableToken.sol';
 
 
@@ -17,7 +19,7 @@ import './DistributableToken.sol';
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  **/
-contract RAXToken is Contactable, HasNoTokens, HasNoEther, PausableToken, DistributableToken {
+contract RAXToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, PausableToken, DistributableToken {
     string public constant name = "RAXToken";
     string public constant symbol = "RAX";
 
@@ -33,6 +35,7 @@ contract RAXToken is Contactable, HasNoTokens, HasNoEther, PausableToken, Distri
     Contactable()
     HasNoTokens()
     HasNoEther()
+    ClaimableEx()
     PausableToken()
     TokenHolders()
     DistributableToken(_regUsers, 1)

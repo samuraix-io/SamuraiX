@@ -32,5 +32,6 @@ module.exports = {
         useColors: true,
         slow: 30000,
         bail: true
-    }
+    },
+    solc: { optimizer: { enabled: true, runs: 200 } }
 };
