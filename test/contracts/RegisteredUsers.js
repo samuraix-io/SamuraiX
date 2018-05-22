@@ -1,13 +1,30 @@
 const RegisteredUsers = artifacts.require("./RegisteredUsers.sol");
+const RAXToken = artifacts.require("./RAXToken.sol");
 
 const should = require('chai')
   .use(require('chai-as-promised'))
   .should();
 
+const claimableEx = require("./ClaimableEx.js");
+const hasNoEther = require("./HasNoEther.js");
+const reclaimTokens = require("./CanReclaimToken.js");
+
 contract('RegisteredUsers', function(accounts) {
   let instance;
   before(async function () {
     instance = await RegisteredUsers.deployed();
+  });
+
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
+  });
+
+  describe('HasNoEther', function() {
+      hasNoEther.check(accounts, deployContract);
+  });
+
+  describe('CanReclaimToken', function() {
+    reclaimTokens.check(RegisteredUsers, accounts, deployContract, deployToken);
   });
 
   describe('addRegisteredUser()', function () {
@@ -69,4 +86,12 @@ contract('RegisteredUsers', function(accounts) {
       (await instance.isNormalUser(accounts[0])).should.be.equal(false);
     });
   });
+
+  async function deployToken(registeredUsers) {
+    return await RAXToken.new(registeredUsers.address);
+  }
+
+  async function deployContract() {
+    return await RegisteredUsers.new();
+  }
 });

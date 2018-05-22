@@ -1,7 +1,5 @@
 pragma solidity ^0.4.20;
 
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-
 import './ClaimableEx.sol';
 import "./DistributableToken.sol";
 import "./PATToken.sol";

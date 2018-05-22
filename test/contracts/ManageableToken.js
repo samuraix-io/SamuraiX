@@ -64,6 +64,10 @@ function check(RegisteredUsers, owner, managers, investor, purchaser, beneficiar
       await token.disableToken({from: managers[0]}).should.be.fulfilled;
     });
 
+    it('enable() should be false', async function() {
+      (await token.enable()).should.be.equal(false);
+    });
+
     it('non-manager can not invoke disableToken()', async function() {
       await token.enableToken({from: managers[0]}).should.be.fulfilled;
       await token.disableToken({from: owner}).should.be.rejected;
@@ -110,6 +114,10 @@ function check(RegisteredUsers, owner, managers, investor, purchaser, beneficiar
     beforeEach(async function () {
       await token.disableToken({from: managers[0]}).should.be.fulfilled;
       await token.enableToken({from: managers[0]}).should.be.fulfilled;
+    });
+
+    it('enable() should be true', async function() {
+      (await token.enable()).should.be.equal(true);
     });
 
     it('non-manager can not invoke enableToken()', async function() {

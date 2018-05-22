@@ -8,6 +8,7 @@ const should = require('chai')
   .should();
 
 const bn = require('./helpers/bignumber.js');
+const claimableEx = require("./ClaimableEx.js");
 const hasNoEther = require("./HasNoEther.js");
 const reclaimTokens = require("./CanReclaimToken.js");
 const assetInfo = require("./AssetInformation.js");
@@ -55,6 +56,10 @@ contract('PATToken', function (accounts) {
     it('should not be self-ownable', async function() {
       await token.transferOwnership(token.address).should.be.rejected;
     });
+  });
+
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
   });
 
   describe('HasNoEther', function() {

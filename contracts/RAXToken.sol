@@ -18,6 +18,7 @@ import './DistributableToken.sol';
  *  - token holders can be distributed profit from asset manager.
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
+ *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
 contract RAXToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, PausableToken, DistributableToken {
     string public constant name = "RAXToken";

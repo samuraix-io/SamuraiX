@@ -6,6 +6,7 @@ const should = require('chai')
   .should();
 
 const bn = require('./helpers/bignumber.js');
+const claimableEx = require("./ClaimableEx.js");
 const hasNoEther = require("./HasNoEther.js");
 const reclaimTokens = require("./CanReclaimToken.js");
 const tokenHolders = require("./TokenHolders.js");
@@ -38,6 +39,10 @@ contract('RAXToken', function (accounts) {
     });
   });
 
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
+  });
+  
   describe('HasNoEther', function() {
       hasNoEther.check(accounts, deployContract);
   });

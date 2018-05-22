@@ -8,7 +8,7 @@ import "./AssetInfo.sol";
  * @dev DistributableToken added with manageable transactions and real asset information.
  **/
 contract ManageableToken is AssetInfo, DistributableToken {
-  bool enable = true;
+  bool public enable = true;
 
   /**
    * @dev Throws if called when this token is disabled.

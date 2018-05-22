@@ -20,6 +20,7 @@ import './ManageableToken.sol';
  *  - contains real asset information.
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
+ *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
 contract PATToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, PausableToken, ManageableToken {
   string public name;

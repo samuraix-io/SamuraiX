@@ -48,12 +48,12 @@ contract('DistributeRAX', function(accounts) {
   });
 
   async function deployPATToken(registeredUsers) {
-    return  await PATToken.new(registeredUsers.address, id, managers, name, symbol,
-                               fixedDocsLink, fixedDocsHash, varDocsLink, varDocsHash);
+    return await PATToken.new(registeredUsers.address, id, managers, name, symbol,
+                              fixedDocsLink, fixedDocsHash, varDocsLink, varDocsHash);
   }
 
   async function deployRAXToken(registeredUsers) {
-    return  await RAXToken.new(registeredUsers.address);
+    return await RAXToken.new(registeredUsers.address);
   }
 
   async function deployContract() {

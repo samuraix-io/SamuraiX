@@ -76,6 +76,10 @@ contract('PATSale', async function(accounts) {
     manageReserveFunds = await ManageReserveFunds.deployed();
   });
 
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
+  });
+
   describe('claimTokenOwnership()', function() {
     owningToken.check(accounts, deployCrowdsaleAndToken);
   });
@@ -160,14 +164,9 @@ contract('PATSale', async function(accounts) {
     });
   });
 
-  describe('ClaimableEx', function() {
-      claimableEx.check(accounts, deployContract);
-  });
-
   describe('CanReclaimToken', function() {
     reclaimTokens.check(RegisteredUsers, accounts, deployContract, deployToken);
   });
-
 
   describe('time dependant', function() {
     var value = ether(10);
@@ -294,6 +293,7 @@ contract('PATSale', async function(accounts) {
         await crowdsale.finalize().should.be.fulfilled;
         await token.claimOwnership().should.be.fulfilled;
         (await token.owner()).should.be.equal((await crowdsale.owner()));
+        (await crowdsale.isFinalized()).should.be.equal(true);
       });
 
       it('should report hasEnded as true', async function() {

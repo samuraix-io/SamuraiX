@@ -1,12 +1,18 @@
 pragma solidity ^0.4.20;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/ownership/HasNoEther.sol';
+import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
+
+import './ClaimableEx.sol';
 
 /**
  * @title Registered users.
  * @dev This contract allows to check whether a specified user is registered or not.
+ *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
+ *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
+ *  - attempts to reject ether sent and allows any ether held to be transferred out.
  **/
-contract RegisteredUsers is Ownable {
+contract RegisteredUsers is ClaimableEx, HasNoEther, HasNoTokens {
   mapping(address => bool) normalUsers;
   mapping(address => bool) specialUsers;
 

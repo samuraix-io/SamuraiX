@@ -57,6 +57,10 @@ contract('RAXSale', async function(accounts) {
     await crowdsale.claimTokenOwnership();
   });
 
+  describe('ClaimableEx', function() {
+      claimableEx.check(accounts, deployContract);
+  });
+
   describe('claimTokenOwnership()', function() {
     owningToken.check(accounts, deployCrowdsaleAndToken);
   });
@@ -95,10 +99,6 @@ contract('RAXSale', async function(accounts) {
       await crowdsale.setMinPurchaseAmt(minAmt).should.be.fulfilled;
       (await crowdsale.minPurchaseAmt()).should.be.bignumber.equal(minAmt);
     });
-  });
-
-  describe('ClaimableEx', function() {
-      claimableEx.check(accounts, deployContract);
   });
 
   describe('CanReclaimToken', function() {
@@ -186,6 +186,7 @@ contract('RAXSale', async function(accounts) {
         res = await crowdsale.finalize();
         await token.claimOwnership().should.be.fulfilled;
         (await token.owner()).should.be.equal((await crowdsale.owner()));
+        (await crowdsale.isFinalized()).should.be.equal(true);
       });
 
       it('should report hasEnded as true', async function() {
