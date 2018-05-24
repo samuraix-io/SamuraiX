@@ -29,11 +29,11 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
     uint256 public minPurchaseAmt = 100 finney;
     uint256 public ethPATRate;
     uint256 public ethRAXRate;
-    uint8 listingFeeRate;
-    uint8 reserveFundRate;
+    uint8 public listingFeeRate;
+    uint8 public reserveFundRate;
     ManageListingFee manageListingFee;
     ManageReserveFunds manageReserveFunds;
-    bool managedTokensMinted = false;
+    bool public managedTokensMinted = false;
 
     /**
      * @param _regUsers A contract to check whether an account is registered or not.
@@ -147,6 +147,9 @@ contract PATSale is PATCrowdsaleEther, PATCrowdsaleRAX {
       */
     function _checkRates() view internal {
       uint256 _totalTokens = _getTokenContract().getTotalTokens();
+      require(maxCap < _totalTokens);
+      require(listingFeeRate > 0 && reserveFundRate > 0);
+
       uint256 _saleRate = (maxCap.mul(100)).div(_totalTokens);
       uint8 _totalPer = uint8(_saleRate) + listingFeeRate + reserveFundRate;
       require(uint8(100) == _totalPer);

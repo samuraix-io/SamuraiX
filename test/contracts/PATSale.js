@@ -110,6 +110,10 @@ contract('PATSale', async function(accounts) {
       (await crowdsale.minPurchaseAmt()).should.be.bignumber.equal(minAmount);
       (await crowdsale.maxCap()).should.be.bignumber.equal(maxCap);
       (await crowdsale.tokensRemaining()).should.be.bignumber.equal(maxCap);
+
+      (await crowdsale.listingFeeRate()).should.be.bignumber.equal(listingFeeRate);
+      (await crowdsale.reserveFundRate()).should.be.bignumber.equal(reserveFundRate);
+      (await crowdsale.managedTokensMinted()).should.be.equal(false);
     });
 
     it('should not be self-ownable', async function() {
@@ -126,7 +130,9 @@ contract('PATSale', async function(accounts) {
     });
 
     it('should allow to pre-mint tokens for managing purpose', async function() {
+      (await crowdsale.managedTokensMinted()).should.be.equal(false);
       await crowdsale.mintManagedTokens().should.be.fulfilled;
+      (await crowdsale.managedTokensMinted()).should.be.equal(true);
     });
 
     it('should reject pre-minting tokens twice', async function() {
@@ -149,7 +155,7 @@ contract('PATSale', async function(accounts) {
       var _listingFeeRate = 5;
       var _reserveFundRate = 15;
       // sum = saleRate + listingFeeRate + reserveFundRate = 95 (%)
-      var _startTime = latestTime() + duration.minutes(1);
+      var _startTime = latestTime() + duration.minutes(2);
       var _endTime = _startTime + duration.hours(1);
       var _raxToken = await RAXToken.new(regUsers.address);
 
@@ -160,6 +166,50 @@ contract('PATSale', async function(accounts) {
                                         _token.address, manageListingFee.address,
                                         manageReserveFunds.address, _startTime,
                                         _endTime, wallet, minCap, maxCap, ethPATRate,
+                                        ethRAXRate, _listingFeeRate, _reserveFundRate).should.be.rejected;
+
+      // listingFeeRate = 0 (%)
+      _listingFeeRate = 0;
+      _reserveFundRate = 25;
+      await PATSale.new(regUsers.address, raxToken.address,
+                                        _token.address, manageListingFee.address,
+                                        manageReserveFunds.address, _startTime,
+                                        _endTime, wallet, minCap, maxCap, ethPATRate,
+                                        ethRAXRate, _listingFeeRate, _reserveFundRate).should.be.rejected;
+      // reserveFundRate = 0 (%)
+      _listingFeeRate = 25;
+      _reserveFundRate = 0;
+      await PATSale.new(regUsers.address, raxToken.address,
+                                        _token.address, manageListingFee.address,
+                                        manageReserveFunds.address, _startTime,
+                                        _endTime, wallet, minCap, maxCap, ethPATRate,
+                                        ethRAXRate, _listingFeeRate, _reserveFundRate).should.be.rejected;
+
+      // minCap > maxCap
+      var _minCap = bn.tokens(80*(10**6) + 1);
+      var _maxCap = bn.tokens(80*(10**6));
+      await PATSale.new(regUsers.address, raxToken.address,
+                                        _token.address, manageListingFee.address,
+                                        manageReserveFunds.address, _startTime,
+                                        _endTime, wallet, _minCap, _maxCap, ethPATRate,
+                                        ethRAXRate, _listingFeeRate, _reserveFundRate).should.be.rejected;
+
+      // maxCap > total tokens
+      var _maxCap = bn.tokens(100*(10**6) + 1);
+      await PATSale.new(regUsers.address, raxToken.address,
+                                        _token.address, manageListingFee.address,
+                                        manageReserveFunds.address, _startTime,
+                                        _endTime, wallet, minCap, _maxCap, ethPATRate,
+                                        ethRAXRate, _listingFeeRate, _reserveFundRate).should.be.rejected;
+
+      // sum > 100 (%)
+      var _maxCap = bn.tokens(76*(10**6));
+      _listingFeeRate = 10;
+      _reserveFundRate = 15;
+      await PATSale.new(regUsers.address, raxToken.address,
+                                        _token.address, manageListingFee.address,
+                                        manageReserveFunds.address, _startTime,
+                                        _endTime, wallet, minCap, _maxCap, ethPATRate,
                                         ethRAXRate, _listingFeeRate, _reserveFundRate).should.be.rejected;
     });
   });
