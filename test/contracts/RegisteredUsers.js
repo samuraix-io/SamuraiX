@@ -38,6 +38,11 @@ contract('RegisteredUsers', function(accounts) {
 
     it('should reject existed address', async () => {
       await instance.addRegisteredUser(accounts[1], false).should.be.rejected;
+      // after adding many addresses successfully
+      await instance.addRegisteredUser(accounts[3], false).should.be.fulfilled;
+      await instance.addRegisteredUser(accounts[4], false).should.be.fulfilled;
+      await instance.addRegisteredUser(accounts[5], false).should.be.fulfilled;
+      await instance.addRegisteredUser(accounts[3], false).should.be.rejected;
     });
 
     it('non-owner can not register new address', async () => {
