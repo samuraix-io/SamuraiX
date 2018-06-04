@@ -15,10 +15,7 @@ module.exports = function(deployer, network) {
   let registeredUser;
 
   deployer.then (() => {
-      return RegisteredUsers.deployed();
-  }).then ((inst) => {
-      registeredUser = inst;
-      return deployer.deploy(RAXToken, registeredUser.address, {overwrite: overwrite});
+      return deployer.deploy(RAXToken, {overwrite: overwrite});
   }).then(() => {
       return RAXToken.deployed();
   }).catch((err) => {

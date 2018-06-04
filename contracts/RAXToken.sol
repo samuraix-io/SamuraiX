@@ -1,12 +1,12 @@
 pragma solidity ^0.4.18;
 
 import 'zeppelin-solidity/contracts/token/ERC20/PausableToken.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/MintableToken.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoEther.sol';
 import 'zeppelin-solidity/contracts/ownership/Contactable.sol';
 
 import './ClaimableEx.sol';
-import './DistributableToken.sol';
 
 
 /**
@@ -20,7 +20,7 @@ import './DistributableToken.sol';
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract RAXToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, PausableToken, DistributableToken {
+contract RAXToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, MintableToken, PausableToken {
     string public constant name = "RAXToken";
     string public constant symbol = "RAX";
 
@@ -29,17 +29,13 @@ contract RAXToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, Pausable
     uint256 public constant BILLION_TOKENS = (10**9) * ONE_TOKENS;
     uint256 public constant TOTAL_TOKENS = 10 * BILLION_TOKENS;
 
-    /**
-     * @param _regUsers A contract to check whether an account is registered or not.
-     */
-    function RAXToken(RegisteredUsers _regUsers)
+    function RAXToken()
     Contactable()
     HasNoTokens()
     HasNoEther()
     ClaimableEx()
+    MintableToken()
     PausableToken()
-    TokenHolders()
-    DistributableToken(_regUsers, 1)
     {
         contactInformation = 'https://token.samuraix.io/';
     }
@@ -63,25 +59,4 @@ contract RAXToken is Contactable, HasNoTokens, HasNoEther, ClaimableEx, Pausable
         require(_newOwner != address(this));
         super.transferOwnership(_newOwner);
     }
-
-    /**
-     * @dev Calculates profit to distribute to a specified token normal holder.
-     * @param _totalProfit Total profit.
-     * @param _totalBalance Total tokens of normal holders.
-     * @param _holder Token normal holder address.
-     * @return Profit value relevant to the token holder.
-     */
-     function calculateProfit(
-       uint256 _totalProfit,
-       uint256 _totalBalance,
-       address _holder)
-     public view returns(uint256) {
-       require(_totalProfit > 0);
-       require(_totalBalance > 0);
-       require(isHolder(_holder));
-
-       uint256 _balance = balanceOf(_holder);
-       uint256 _profit = (_balance.mul(_totalProfit)).div(_totalBalance);
-       return _profit;
-     }
 }

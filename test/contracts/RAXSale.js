@@ -243,12 +243,6 @@ contract('RAXSale', async function(accounts) {
         tokens2.should.be.bignumber.equal(tokens1.plus(amount.times(ethRAXRate)));
       });
 
-      it('the investor should become a token holder after buying tokens', async function() {
-        (await token.isHolder(investor)).should.be.equal(false);
-        await crowdsale.sendTransaction({value: value, from: investor});
-        (await token.isHolder(investor)).should.be.equal(true);
-      });
-
       it('should reject buying tokens from unregistered user', async function () {
         (await regUsers.isUserRegistered(other1)).should.be.equal(false);
         await crowdsale.sendTransaction({value: value, from: other1}).should.be.rejected;
@@ -318,12 +312,6 @@ contract('RAXSale', async function(accounts) {
         await crowdsale.buyTokens(other, {value: amount, from: other});
         var tokens2 = await token.balanceOf(other);
         tokens2.should.be.bignumber.equal(tokens1.plus(amount.times(ethRAXRate)));
-      });
-
-      it('the investor should become a token holder after buying tokens', async function() {
-        (await token.isHolder(investor)).should.be.equal(false);
-        await crowdsale.buyTokens(investor, {value: value, from: investor}).should.be.fulfilled;
-        (await token.isHolder(investor)).should.be.equal(true);
       });
 
       it('should reject under minimum amount (0.1 Ether)', async function() {
@@ -485,7 +473,7 @@ contract('RAXSale', async function(accounts) {
   });
 
   async function deployToken(registeredUsers) {
-    return await RAXToken.new(registeredUsers.address);
+    return await RAXToken.new();
   }
 
   async function deployContract() {

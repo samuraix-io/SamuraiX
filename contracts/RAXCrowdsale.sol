@@ -8,7 +8,7 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 import './ClaimableEx.sol';
 import './RAXToken.sol';
-
+import './RegisteredUsers.sol';
 
 /*
  * @title RAXCrowdsale is the base class for RAXSale.
@@ -82,7 +82,7 @@ contract RAXCrowdsale is Contactable, Pausable, HasNoContracts, HasNoTokens, Cla
 
         _getTokenContract().mint(_beneficiary, tokens);
         TokenPurchase(msg.sender, _beneficiary, weiAmount, tokens);
-        _getTokenContract().addHolder(_beneficiary);
+
         _forwardFunds();
     }
 

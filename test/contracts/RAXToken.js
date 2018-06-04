@@ -27,12 +27,6 @@ contract('RAXToken', function (accounts) {
     token = await RAXToken.deployed();
   });
 
-  describe('check ID', async function() {
-    it('should equal 1', async function() {
-      (await token.getID()).should.be.bignumber.equal(1);
-    });
-  });
-
   describe('transferOwnership()', function() {
     it('should not be self-ownable', async function() {
       await token.transferOwnership(token.address).should.be.rejected;
@@ -42,7 +36,7 @@ contract('RAXToken', function (accounts) {
   describe('ClaimableEx', function() {
       claimableEx.check(accounts, deployContract);
   });
-  
+
   describe('HasNoEther', function() {
       hasNoEther.check(accounts, deployContract);
   });
@@ -53,10 +47,6 @@ contract('RAXToken', function (accounts) {
 
   describe('Mintable Token', function() {
     mintableToken.check(RegisteredUsers, accounts, deploy);
-  });
-
-  describe('Distributable Token', function() {
-    distributableToken.check(RegisteredUsers, accounts, deploy);
   });
 
   describe('Basic Token', function() {
@@ -71,12 +61,8 @@ contract('RAXToken', function (accounts) {
     pausableToken.check(RegisteredUsers, accounts, deploy);
   });
 
-  describe('Token Holders', function() {
-    tokenHolders.check(RegisteredUsers, accounts, deploy);
-  });
-
   async function deploy(registeredUsers) {
-    var _token = await RAXToken.new(registeredUsers.address);
+    var _token = await RAXToken.new();
     return _token;
   }
 
