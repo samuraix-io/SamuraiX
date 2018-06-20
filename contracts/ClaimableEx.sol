@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import "zeppelin-solidity/contracts/ownership/Claimable.sol";
+import "./zeppelin/contracts/ownership/Claimable.sol";
 
 /**
  * @title Claimable Ex
