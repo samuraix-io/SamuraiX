@@ -4,6 +4,7 @@ import "../zeppelin/contracts/math/SafeMath.sol";
 import "../zeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "../ownership/ClaimableEx.sol";
+import "../ownership/NoOwnerEx.sol";
 import "./AllowanceSheet.sol";
 import "./BalanceSheet.sol";
 
@@ -18,7 +19,7 @@ import "./BalanceSheet.sol";
  * HasNoContracts because then it can relinquish its balance sheet to a new
  * version of the token, removing the need to copy over balances.
  **/
-contract StandardToken is ClaimableEx, ERC20 {
+contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   using SafeMath for uint256;
 
   uint256 private totalSupply_;

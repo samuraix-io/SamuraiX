@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 import './zeppelin/contracts/ownership/Contactable.sol';
-import "./zeppelin/contracts/ownership/NoOwner.sol";
 
 import './base-token/BurnableToken.sol';
 import './base-token/PausableToken.sol';
@@ -20,7 +19,7 @@ import './TraceableToken.sol';
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract PATToken is Contactable, NoOwner, BurnableToken, TraceableToken, PausableToken {
+contract PATToken is Contactable, BurnableToken, TraceableToken, PausableToken {
   string public name = "PATToken";
   string public symbol = "PAT";
 
@@ -98,18 +97,5 @@ contract PATToken is Contactable, NoOwner, BurnableToken, TraceableToken, Pausab
 
     uint256 _profit = (_balance.mul(_totalProfit)).div(_totalBalance);
     return _profit;
-  }
-
-  // Alternatives to the normal NoOwner functions in case this contract's owner
-  // can't own ether or tokens.
-  // Note that we *do* inherit reclaimContract from NoOwner: This contract
-  // does have to own contracts, but it also has to be able to relinquish them.
-  function reclaimEther(address _to) external onlyOwner {
-    _to.transfer(address(this).balance);
-  }
-
-  function reclaimToken(ERC20Basic token, address _to) external onlyOwner {
-    uint256 balance = token.balanceOf(this);
-    token.safeTransfer(_to, balance);
   }
 }
