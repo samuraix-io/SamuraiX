@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../zeppelin/contracts/math/SafeMath.sol";
 
-import "../ClaimableEx.sol";
+import "../ownership/ClaimableEx.sol";
 
 
 // A wrapper around the allowed mapping.
@@ -10,6 +10,17 @@ contract AllowanceSheet is ClaimableEx {
   using SafeMath for uint256;
 
   mapping (address => mapping (address => uint256)) private allowed;
+
+  function allowanceOf(
+    address _owner,
+    address _spender
+  )
+    public
+    view
+    returns (uint256)
+  {
+      return allowed[_owner][_spender];
+  }
 
   function addAllowance(
     address _holder,

@@ -15,17 +15,17 @@ contract DefaultRegistryAccessManager is RegistryAccessManager {
   // b) the writer is writing to attribute foo and that writer already has
   // the canWriteTo-foo attribute set (in that same Registry)
   function confirmWrite(
-    address _who,
+    address /*_who*/,
     string _attribute,
-    uint256 _value,
-    string _notes,
+    uint256 /*_value*/,
+    string /*_notes*/,
     address _admin
   )
     public
     returns (bool)
   {
     Registry _client = Registry(msg.sender);
-    string _writePermAttr = _strConcat(WRITE_PERMISSION, _attribute);
+    string memory _writePermAttr = _strConcat(WRITE_PERMISSION, _attribute);
     bool _hasWritePerm = _client.hasAttribute(_admin, _writePermAttr);
     return (_admin == _client.owner() || _hasWritePerm);
   }

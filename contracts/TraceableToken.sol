@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import '../base-token/MintableToken.sol';
-import '../utils/AddressSet.sol';
+import './base-token/MintableToken.sol';
+import './utils/AddressSet.sol';
 
 
 /**

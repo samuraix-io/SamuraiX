@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "../ClaimableEx.sol";
+import "../ownership/ClaimableEx.sol";
 import "./DefaultRegistryAccessManager.sol";
 import "./RegistryAccessManager.sol";
 

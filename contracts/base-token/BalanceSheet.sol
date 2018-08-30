@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../zeppelin/contracts/math/SafeMath.sol";
 
-import "../ClaimableEx.sol";
+import "../ownership/ClaimableEx.sol";
 
 
 // A wrapper around the balances mapping.

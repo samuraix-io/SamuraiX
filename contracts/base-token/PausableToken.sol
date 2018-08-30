@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../zeppelin/contracts/lifecycle/Pausable.sol";
 
-import "./StandardToken";
+import "./StandardToken.sol";
 
 
 /**
@@ -69,7 +69,7 @@ contract PausableToken is StandardToken, Pausable {
 
   function _burn(
     address _burner,
-    uint256 _value,
+    uint256 _value
   )
     internal
     whenNotPaused

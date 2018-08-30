@@ -3,8 +3,8 @@ pragma solidity ^0.4.24;
 import './zeppelin/contracts/ownership/Contactable.sol';
 import "./zeppelin/contracts/ownership/NoOwner.sol";
 
-import './base-token/BurnableToken';
-import './base-token/PausableToken';
+import './base-token/BurnableToken.sol';
+import './base-token/PausableToken.sol';
 import './TraceableToken.sol';
 
 
@@ -34,8 +34,6 @@ contract PATToken is Contactable, NoOwner, BurnableToken, TraceableToken, Pausab
    * @param _symbol Symbol of this token.
    */
   constructor(string _name, string _symbol) public {
-    totalSupply_ = 0;
-
     name = _name;
     symbol = _symbol;
     contactInformation = 'https://token.samuraix.io/';
@@ -62,7 +60,7 @@ contract PATToken is Contactable, NoOwner, BurnableToken, TraceableToken, Pausab
     canMint
     returns(bool)
   {
-    require(totalSupply_.add(_amount) <= TOTAL_TOKENS);
+    require(totalSupply().add(_amount) <= TOTAL_TOKENS);
 
     return super.mint(_to, _amount);
   }

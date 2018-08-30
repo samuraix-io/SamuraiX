@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "./zeppelin/contracts/ownership/Claimable.sol";
+import "../zeppelin/contracts/ownership/Claimable.sol";
 
 
 /**
@@ -12,6 +12,6 @@ contract ClaimableEx is Claimable {
    * @dev Cancels the ownership transfer.
    */
   function cancelOwnershipTransfer() onlyOwner public {
-      pendingOwner = owner;
+    pendingOwner = owner;
   }
 }

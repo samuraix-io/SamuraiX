@@ -2,11 +2,10 @@ pragma solidity ^0.4.24;
 
 import "../zeppelin/contracts/math/SafeMath.sol";
 import "../zeppelin/contracts/token/ERC20/ERC20.sol";
-import "../zeppelin/contracts/token/ERC20/ERC20Basic.sol";
 
+import "../ownership/ClaimableEx.sol";
 import "./AllowanceSheet.sol";
 import "./BalanceSheet.sol";
-import "../ClaimableEx";
 
 
 /**
@@ -19,7 +18,7 @@ import "../ClaimableEx";
  * HasNoContracts because then it can relinquish its balance sheet to a new
  * version of the token, removing the need to copy over balances.
  **/
-contract StandardToken is ERC20, ERC20Basic, ClaimableEx {
+contract StandardToken is ClaimableEx, ERC20 {
   using SafeMath for uint256;
 
   uint256 private totalSupply_;
@@ -30,26 +29,30 @@ contract StandardToken is ERC20, ERC20Basic, ClaimableEx {
   AllowanceSheet private allowances;
   event AllowanceSheetSet(address indexed sheet);
 
+  constructor() public {
+    totalSupply_ = 0;
+  }
+
   /**
-  * @dev Total number of tokens in existence
-  */
+   * @dev Total number of tokens in existence
+   */
   function totalSupply() public view returns (uint256) {
     return totalSupply_;
   }
 
   /**
-  * @dev Gets the balance of the specified address.
-  * @param _owner The address to query the the balance of.
-  * @return An uint256 representing the amount owned by the passed address.
-  */
+   * @dev Gets the balance of the specified address.
+   * @param _owner The address to query the the balance of.
+   * @return An uint256 representing the amount owned by the passed address.
+   */
   function balanceOf(address _owner) public view returns (uint256 balance) {
     return balances.balanceOf(_owner);
   }
 
   /**
-  * @dev Claim ownership of the BalanceSheet contract
-  * @param _sheet The address of the BalanceSheet to claim.
-  */
+   * @dev Claim ownership of the BalanceSheet contract
+   * @param _sheet The address of the BalanceSheet to claim.
+   */
   function setBalanceSheet(address _sheet) public onlyOwner returns (bool) {
     balances = BalanceSheet(_sheet);
     balances.claimOwnership();
@@ -58,9 +61,9 @@ contract StandardToken is ERC20, ERC20Basic, ClaimableEx {
   }
 
   /**
-  * @dev Claim ownership of the AllowanceSheet contract
-  * @param _sheet The address of the AllowanceSheet to claim.
-  */
+   * @dev Claim ownership of the AllowanceSheet contract
+   * @param _sheet The address of the AllowanceSheet to claim.
+   */
   function setAllowanceSheet(address _sheet) public onlyOwner returns(bool) {
     allowances = AllowanceSheet(_sheet);
     allowances.claimOwnership();
@@ -69,10 +72,10 @@ contract StandardToken is ERC20, ERC20Basic, ClaimableEx {
   }
 
   /**
-  * @dev Transfer token for a specified address
-  * @param _to The address to transfer to.
-  * @param _value The amount to be transferred.
-  */
+   * @dev Transfer token for a specified address
+   * @param _to The address to transfer to.
+   * @param _value The amount to be transferred.
+   */
   function transfer(address _to, uint256 _value) public returns (bool) {
     _transfer(msg.sender, _to, _value);
     return true;
@@ -247,7 +250,7 @@ contract StandardToken is ERC20, ERC20Basic, ClaimableEx {
 
     totalSupply_ = totalSupply_.add(_amount);
     balances.addBalance(_account, _amount);
-    
+
     emit Transfer(address(0), _account, _amount);
   }
 
