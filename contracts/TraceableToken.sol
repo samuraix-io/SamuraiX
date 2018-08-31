@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+import './access/Manageable.sol'
 import './base-token/MintableToken.sol';
 import './utils/AddressSet.sol';
 
@@ -8,11 +9,19 @@ import './utils/AddressSet.sol';
  * @title Traceable token.
  * @dev This contract allows a sub-class token contract to run a loop through its all holders.
  **/
-contract TraceableToken is MintableToken {
+contract TraceableToken is Manageable, MintableToken {
   AddressSet private holderSet;
 
   constructor() public {
     holderSet = new AddressSet();
+  }
+
+  /**
+   * @dev Throws if called by any account that is neither a manager nor the owner.
+   */
+  modifier canTrace() {
+    require(isManager(msg.sender) || msg.sender == owner);
+    _;
   }
 
   /**
@@ -57,11 +66,11 @@ contract TraceableToken is MintableToken {
     return true;
   }
 
-  function getTheNumberOfHolders() onlyOwner external view returns (uint256) {
+  function getTheNumberOfHolders() public canTrace view returns (uint256) {
     return holderSet.getTheNumberOfElements();
   }
 
-  function getHolder(uint256 _index) onlyOwner external view returns (address) {
+  function getHolder(uint256 _index) public canTrace view returns (address) {
     return holderSet.elementAt(_index);
   }
 

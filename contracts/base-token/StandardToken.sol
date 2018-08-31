@@ -22,7 +22,7 @@ import "./BalanceSheet.sol";
 contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   using SafeMath for uint256;
 
-  uint256 private totalSupply_;
+  uint256 totalSupply_;
 
   BalanceSheet private balances;
   event BalanceSheetSet(address indexed sheet);

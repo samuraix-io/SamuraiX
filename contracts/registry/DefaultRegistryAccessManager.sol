@@ -19,15 +19,15 @@ contract DefaultRegistryAccessManager is RegistryAccessManager {
     string _attribute,
     uint256 /*_value*/,
     string /*_notes*/,
-    address _admin
+    address _operator
   )
     public
     returns (bool)
   {
     Registry _client = Registry(msg.sender);
     string memory _writePermAttr = _strConcat(WRITE_PERMISSION, _attribute);
-    bool _hasWritePerm = _client.hasAttribute(_admin, _writePermAttr);
-    return (_admin == _client.owner() || _hasWritePerm);
+    bool _hasWritePerm = _client.hasAttribute(_operator, _writePermAttr);
+    return (_operator == _client.owner() || _hasWritePerm);
   }
 
   function _strConcat(

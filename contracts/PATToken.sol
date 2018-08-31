@@ -2,9 +2,12 @@ pragma solidity ^0.4.24;
 
 import './zeppelin/contracts/ownership/Contactable.sol';
 
-import './base-token/BurnableToken.sol';
+import './base-token/BurnableExToken.sol';
 import './base-token/PausableToken.sol';
+import './CompliantToken.sol';
+import './TokenWithFees.sol';
 import './TraceableToken.sol';
+import './WithdrawalToken.sol';
 
 
 /**
@@ -19,7 +22,7 @@ import './TraceableToken.sol';
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract PATToken is Contactable, BurnableToken, TraceableToken, PausableToken {
+contract PATToken is Contactable, BurnableExToken, TraceableToken, TokenWithFees, WithdrawalToken, CompliantToken, PausableToken {
   string public name = "PATToken";
   string public symbol = "PAT";
 
