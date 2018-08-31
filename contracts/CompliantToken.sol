@@ -46,7 +46,6 @@ contract CompliantToken is HasRegistry, StandardToken {
     internal
     onlyIfNotBlacklisted(_from)
     onlyIfNotBlacklisted(_to)
-    onlyIfPassedKYC_AML(_from)
     onlyIfPassedKYC_AML(_to)
   {
     super._transfer(_from, _to, _value);
