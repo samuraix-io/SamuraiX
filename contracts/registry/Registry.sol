@@ -9,7 +9,6 @@ contract Registry is ClaimableEx {
   struct AttributeData {
     uint256 value;
     string notes;
-    address adminAddr;
     uint256 timestamp;
   }
 
@@ -63,7 +62,6 @@ contract Registry is ClaimableEx {
     attributes[_who][_attribute] = AttributeData(
       _value,
       _notes,
-      msg.sender,
       block.timestamp
     );
 
@@ -89,10 +87,10 @@ contract Registry is ClaimableEx {
   )
     public
     view
-    returns (uint256, string, address, uint256)
+    returns (uint256, string, uint256)
   {
     AttributeData memory _data = attributes[_who][_attribute];
-    return (_data.value, _data.notes, _data.adminAddr, _data.timestamp);
+    return (_data.value, _data.notes, _data.timestamp);
   }
 
   function setManager(RegistryAccessManager _accessManager) public onlyOwner {
