@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import './access/Manageable.sol'
+import './access/Manageable.sol';
 import './base-token/MintableToken.sol';
 import './utils/AddressSet.sol';
 

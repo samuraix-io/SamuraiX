@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "./access/Manageable.sol"
+import "./access/Manageable.sol";
 import "./base-token/StandardToken.sol";
 
 
@@ -29,7 +29,7 @@ contract TokenWithFees is Manageable, StandardToken {
   // and the system wallet will receive 1 token.
   function _transfer(address _from, address _to, uint256 _value) internal {
     uint256 _fee = _payFee(_from, _value, _to);
-    uint256 _remaining = _value.sub(fee);
+    uint256 _remaining = _value.sub(_fee);
     super._transfer(_from, _to, _remaining);
   }
 

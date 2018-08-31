@@ -2,11 +2,11 @@ pragma solidity ^0.4.24;
 
 import './zeppelin/contracts/ownership/Contactable.sol';
 
-import './base-token/BurnableExToken.sol';
 import './base-token/PausableToken.sol';
+import './AssetInfo.sol';
+import './BurnableExToken.sol';
 import './CompliantToken.sol';
 import './TokenWithFees.sol';
-import './TraceableToken.sol';
 import './WithdrawalToken.sol';
 
 
@@ -22,7 +22,7 @@ import './WithdrawalToken.sol';
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract PATToken is Contactable, BurnableExToken, TraceableToken, TokenWithFees, WithdrawalToken, CompliantToken, PausableToken {
+contract PATToken is Contactable, AssetInfo, BurnableExToken, TokenWithFees, WithdrawalToken, CompliantToken, PausableToken {
   string public name = "PATToken";
   string public symbol = "PAT";
 
@@ -35,10 +35,20 @@ contract PATToken is Contactable, BurnableExToken, TraceableToken, TokenWithFees
    * @param _name Name of this token.
    * @param _symbol Symbol of this token.
    */
-  constructor(string _name, string _symbol) public {
+  constructor(
+    string _name,
+    string _symbol,
+    string _fixedDocsLink,
+    string _varDocsLink,
+    address _wallet
+  )
+    public
+    AssetInfo(_fixedDocsLink, _varDocsLink)
+    TokenWithFees(_wallet)
+  {
     name = _name;
     symbol = _symbol;
-    contactInformation = 'https://token.samuraix.io/';
+    contactInformation = 'https://rax.exchange/';
   }
 
   function changeTokenName(string _name, string _symbol) public onlyOwner {
@@ -75,30 +85,5 @@ contract PATToken is Contactable, BurnableExToken, TraceableToken, TokenWithFees
     // do not allow self ownership
     require(_newOwner != address(this));
     super.transferOwnership(_newOwner);
-  }
-
-  /**
-   * @dev Calculates profit to distribute to a specified token normal holder.
-   * @param _totalProfit Total profit.
-   * @param _totalBalance Total tokens of normal holders.
-   * @param _holder Token normal holder address.
-   * @return Profit value relevant to the token holder.
-   */
-  function calculateProfit(
-    uint256 _totalProfit,
-    uint256 _totalBalance,
-    address _holder
-  )
-    public
-    view
-    returns (uint256)
-  {
-    require(_totalProfit > 0);
-    require(_totalBalance > 0);
-    uint256 _balance = balanceOf(_holder);
-    require(_balance > 0);
-
-    uint256 _profit = (_balance.mul(_totalProfit)).div(_totalBalance);
-    return _profit;
   }
 }
