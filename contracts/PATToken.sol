@@ -3,6 +3,8 @@ pragma solidity ^0.4.24;
 import './zeppelin/contracts/ownership/Contactable.sol';
 
 import './base-token/PausableToken.sol';
+import './delegate/CanDelegateToken.sol';
+import './delegate/DelegateToken.sol';
 import './AssetInfo.sol';
 import './BurnableExToken.sol';
 import './CompliantToken.sol';
@@ -18,11 +20,16 @@ import './WithdrawalToken.sol';
  *  - mints new tokens when purchased.
  *  - token holders can be distributed profit from asset manager.
  *  - contains real asset information.
+ *  - can delegate to a new contract.
+ *  - can enforce burning all tokens.
+ *  - transferring tokens to 0x0 address is treated as burning.
+ *  - transferring tokens with fees are sent to the system wallet.
+ *  - attempts to check KYC/AML and Blacklist using Registry.
  *  - attempts to reject ERC20 token transfers to itself and allows token transfer out.
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract PATToken is Contactable, AssetInfo, BurnableExToken, TokenWithFees, WithdrawalToken, CompliantToken, PausableToken {
+contract PATToken is Contactable, AssetInfo, BurnableExToken, CanDelegateToken, DelegateToken, TokenWithFees, WithdrawalToken, CompliantToken, PausableToken {
   string public name = "PATToken";
   string public symbol = "PAT";
 

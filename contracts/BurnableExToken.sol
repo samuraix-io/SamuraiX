@@ -12,13 +12,6 @@ import './TraceableToken.sol';
  **/
 contract BurnableExToken is Manageable, BurnableToken, TraceableToken {
 
-  event Burn(
-    address indexed manager,
-    address indexed burner,
-    uint256 value,
-    string note
-  );
-
   /**
    * @dev Burns all remaining tokens of all holders.
    * @param _note a note that the manager can attach.
@@ -32,24 +25,5 @@ contract BurnableExToken is Manageable, BurnableToken, TraceableToken {
 
       _burn(_holder, _balance, _note);
     }
-  }
-
-  /**
-   * @dev Burns a specific amount of tokens.
-   * @param _burner Who has tokens to be burned.
-   * @param _value The amount of tokens to be burned.
-   * @param _note a note that the manager can attach.
-   */
-  function _burn(
-    address _burner,
-    uint256 _value,
-    string _note
-  )
-    internal
-    onlyManager
-  {
-    _burn(_burner, _value);
-
-    emit Burn(msg.sender, _burner, _value, _note);
   }
 }
