@@ -5,7 +5,6 @@ import "../zeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "../ownership/ClaimableEx.sol";
 import "../ownership/NoOwnerEx.sol";
-import "./AllowanceSheet.sol";
 import "./BalanceSheet.sol";
 
 
@@ -14,8 +13,7 @@ import "./BalanceSheet.sol";
  *
  * @dev Implementation of the basic standard token.
  * A version of OpenZeppelin's StandardToken whose balances mapping has been replaced
- * with a separate BalanceSheet contract, and allowed mapping has been replaced
- * with a separate AllowanceSheet contract. Most useful in combination with e.g.
+ * with a separate BalanceSheet contract. Most useful in combination with e.g.
  * HasNoContracts because then it can relinquish its balance sheet to a new
  * version of the token, removing the need to copy over balances.
  **/
@@ -27,8 +25,7 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   BalanceSheet private balances;
   event BalanceSheetSet(address indexed sheet);
 
-  AllowanceSheet private allowances;
-  event AllowanceSheetSet(address indexed sheet);
+  mapping (address => mapping (address => uint256)) private allowed;
 
   constructor() public {
     totalSupply_ = 0;
@@ -58,17 +55,6 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
     balances = BalanceSheet(_sheet);
     balances.claimOwnership();
     emit BalanceSheetSet(_sheet);
-    return true;
-  }
-
-  /**
-   * @dev Claim ownership of the AllowanceSheet contract
-   * @param _sheet The address of the AllowanceSheet to claim.
-   */
-  function setAllowanceSheet(address _sheet) public onlyOwner returns(bool) {
-    allowances = AllowanceSheet(_sheet);
-    allowances.claimOwnership();
-    emit AllowanceSheetSet(_sheet);
     return true;
   }
 
@@ -129,7 +115,7 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
     view
     returns (uint256)
   {
-    return allowances.allowanceOf(_owner, _spender);
+    return allowed[_owner][_spender];
   }
 
   /**
@@ -179,7 +165,7 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   )
     internal
   {
-    allowances.setAllowance(_tokenHolder, _spender, _value);
+    allowed[_tokenHolder][_spender] = _value;
 
     emit Approval(_tokenHolder, _spender, _value);
   }
@@ -209,18 +195,14 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   )
     internal
   {
-    uint256 _oldValue = allowances.allowanceOf(_tokenHolder, _spender);
-    if (_subtractedValue > _oldValue) {
-      allowances.setAllowance(_tokenHolder, _spender, 0);
+    uint256 _oldValue = allowed[_tokenHolder][_spender];
+    if (_subtractedValue >= _oldValue) {
+      allowed[_tokenHolder][_spender] = 0;
     } else {
-      allowances.subAllowance(_tokenHolder, _spender, _subtractedValue);
+      allowed[_tokenHolder][_spender] = _oldValue.sub(_subtractedValue);
     }
 
-    emit Approval(
-      _tokenHolder,
-      _spender,
-      allowances.allowanceOf(_tokenHolder, _spender)
-    );
+    emit Approval(_tokenHolder, _spender, allowed[_tokenHolder][_spender]);
   }
 
   function _increaseApproval(
@@ -230,13 +212,10 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   )
     internal
   {
-    allowances.addAllowance(_tokenHolder, _spender, _addedValue);
+    allowed[_tokenHolder][_spender] = (
+      allowed[_tokenHolder][_spender].add(_addedValue));
 
-    emit Approval(
-      _tokenHolder,
-      _spender,
-      allowances.allowanceOf(_tokenHolder, _spender)
-    );
+    emit Approval(_tokenHolder, _spender, allowed[_tokenHolder][_spender]);
   }
 
   /**
@@ -275,10 +254,10 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
   )
     internal
   {
-    uint256 _allowed = allowances.allowanceOf(_from, _spender);
+    uint256 _allowed = allowed[_from][_spender];
     require(_value <= _allowed, "not enough allowance to transfer");
 
-    allowances.subAllowance(_from, _spender, _value);
+    allowed[_from][_spender] = allowed[_from][_spender].sub(_value);
     _transfer(_from, _to, _value);
   }
 }
