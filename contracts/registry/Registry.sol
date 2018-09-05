@@ -68,7 +68,6 @@ contract Registry is ClaimableEx {
     emit SetAttribute(_who, _attribute, true, _notes, msg.sender);
   }
 
-  // Returns true if the uint256 value stored for this attribute is non-zero
   function clearAttribute(
     address _who,
     Attribute.AttributeType _attribute,
