@@ -5,24 +5,37 @@ import "./registry/HasRegistry.sol";
 
 
 contract CompliantToken is HasRegistry, StandardToken {
-  string constant HAS_PASSED_KYC_AML = "hasPassedKYC/AML";
   // Addresses can also be blacklisted, preventing them from sending or receiving
   // PAT tokens. This can be used to prevent the use of PAT by bad actors in
   // accordance with law enforcement.
-  string constant IS_BLACKLISTED = "isBlacklisted";
 
   modifier onlyIfNotBlacklisted(address _addr) {
-    require(!registry.hasAttribute(_addr, IS_BLACKLISTED));
+    require(
+      !registry.hasAttribute(
+        _addr,
+        Attribute.AttributeType.IS_BLACKLISTED
+      )
+    );
     _;
   }
 
   modifier onlyIfBlacklisted(address _addr) {
-    require(registry.hasAttribute(_addr, IS_BLACKLISTED));
+    require(
+      registry.hasAttribute(
+        _addr,
+        Attribute.AttributeType.IS_BLACKLISTED
+      )
+    );
     _;
   }
 
   modifier onlyIfPassedKYC_AML(address _addr) {
-    require(registry.hasAttribute(_addr, HAS_PASSED_KYC_AML));
+    require(
+      registry.hasAttribute(
+        _addr,
+        Attribute.AttributeType.HAS_PASSED_KYC_AML
+      )
+    );
     _;
   }
 

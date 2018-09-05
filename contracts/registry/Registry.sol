@@ -1,15 +1,17 @@
 pragma solidity ^0.4.24;
 
 import "../ownership/ClaimableEx.sol";
+import "../utils/BitManipulation.sol";
+import "./Attribute.sol";
 import "./DefaultRegistryAccessManager.sol";
 import "./RegistryAccessManager.sol";
 
 
 contract Registry is ClaimableEx {
+  using BitManipulation for uint256;
+
   struct AttributeData {
     uint256 value;
-    string notes;
-    uint256 timestamp;
   }
 
   // Stores arbitrary attributes for users. An example use case is an ERC20
@@ -18,7 +20,7 @@ contract Registry is ClaimableEx {
   // that account can use the token. This mapping stores that value (1, in the
   // example) as well as which validator last set the value and at what time,
   // so that e.g. the check can be renewed at appropriate intervals.
-  mapping(address => mapping(string => AttributeData)) private attributes;
+  mapping(address => AttributeData) private attributes;
 
   // The logic governing who is allowed to set what attributes is abstracted as
   // this accessManager, so that it may be replaced by the owner as needed.
@@ -26,8 +28,8 @@ contract Registry is ClaimableEx {
 
   event SetAttribute(
     address indexed who,
-    string attribute,
-    uint256 value,
+    Attribute.AttributeType attribute,
+    bool enable,
     string notes,
     address indexed adminAddr
   );
@@ -44,8 +46,7 @@ contract Registry is ClaimableEx {
   // Writes are allowed only if the accessManager approves
   function setAttribute(
     address _who,
-    string _attribute,
-    uint256 _value,
+    Attribute.AttributeType _attribute,
     string _notes
   )
     public
@@ -53,44 +54,67 @@ contract Registry is ClaimableEx {
     bool _canWrite = accessManager.confirmWrite(
       _who,
       _attribute,
-      _value,
-      _notes,
       msg.sender
     );
     require(_canWrite);
 
-    attributes[_who][_attribute] = AttributeData(
-      _value,
-      _notes,
-      block.timestamp
+    // Get value of previous attribute before setting new attribute
+    uint256 _tempVal = attributes[_who].value;
+
+    attributes[_who] = AttributeData(
+      _tempVal.setBit(Attribute.toUint256(_attribute))
     );
 
-    emit SetAttribute(_who, _attribute, _value, _notes, msg.sender);
+    emit SetAttribute(_who, _attribute, true, _notes, msg.sender);
+  }
+
+  // Returns true if the uint256 value stored for this attribute is non-zero
+  function clearAttribute(
+    address _who,
+    Attribute.AttributeType _attribute,
+    string _notes
+  )
+    public
+  {
+    bool _canWrite = accessManager.confirmWrite(
+      _who,
+      _attribute,
+      msg.sender
+    );
+    require(_canWrite);
+
+    // Get value of previous attribute before setting new attribute
+    uint256 _tempVal = attributes[_who].value;
+
+    attributes[_who] = AttributeData(
+      _tempVal.clearBit(Attribute.toUint256(_attribute))
+    );
+
+    emit SetAttribute(_who, _attribute, false, _notes, msg.sender);
   }
 
   // Returns true if the uint256 value stored for this attribute is non-zero
   function hasAttribute(
     address _who,
-    string _attribute
+    Attribute.AttributeType _attribute
   )
     public
     view
     returns (bool)
   {
-    return attributes[_who][_attribute].value != 0;
+    return attributes[_who].value.checkBit(Attribute.toUint256(_attribute));
   }
 
   // Returns the exact value of the attribute, as well as its metadata
-  function getAttribute(
-    address _who,
-    string _attribute
+  function getAttributes(
+    address _who
   )
     public
     view
-    returns (uint256, string, uint256)
+    returns (uint256)
   {
-    AttributeData memory _data = attributes[_who][_attribute];
-    return (_data.value, _data.notes, _data.timestamp);
+    AttributeData memory _data = attributes[_who];
+    return _data.value;
   }
 
   function setManager(RegistryAccessManager _accessManager) public onlyOwner {

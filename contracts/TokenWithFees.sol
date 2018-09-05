@@ -9,8 +9,6 @@ import "./base-token/StandardToken.sol";
  * @dev This contract allows for transaction fees to be assessed on transfer.
  **/
 contract TokenWithFees is Manageable, StandardToken {
-  string public constant NO_FEES = "noFees";
-
   uint256 public transferFeeNumerator = 0;
   uint256 public transferFeeDenominator = 10000;
   // All transaction fees are paid to this address.
@@ -43,8 +41,8 @@ contract TokenWithFees is Manageable, StandardToken {
   {
     // This check allows accounts to be whitelisted and not have to pay transaction fees.
     bool _shouldBeFree = (
-      registry.hasAttribute(_payer, NO_FEES) ||
-      registry.hasAttribute(_otherParticipant, NO_FEES)
+      registry.hasAttribute(_payer, Attribute.AttributeType.NO_FEES) ||
+      registry.hasAttribute(_otherParticipant, Attribute.AttributeType.NO_FEES)
     );
     if (_shouldBeFree) {
       return 0;

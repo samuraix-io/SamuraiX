@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./Registry.sol";
+import "./Attribute.sol";
 
 
 // Interface for logic governing write access to a Registry.
@@ -9,9 +10,7 @@ contract RegistryAccessManager {
   // Returns true if the write is allowed to proceed.
   function confirmWrite(
     address _who,
-    string _attribute,
-    uint256 _value,
-    string _notes,
+    Attribute.AttributeType _attribute,
     address _admin
   )
     public returns (bool);

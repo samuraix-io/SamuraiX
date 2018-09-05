@@ -7,44 +7,22 @@ import "./RegistryAccessManager.sol";
 
 
 contract DefaultRegistryAccessManager is RegistryAccessManager {
-  using SafeMath for uint256;
-
-  string public constant WRITE_PERMISSION = "canWriteTo-";
-
-  // Allows a write if either a) the writer is that Registry's owner, or
-  // b) the writer is writing to attribute foo and that writer already has
-  // the canWriteTo-foo attribute set (in that same Registry)
   function confirmWrite(
     address /*_who*/,
-    string _attribute,
-    uint256 /*_value*/,
-    string /*_notes*/,
+    Attribute.AttributeType _attribute,
     address _operator
   )
     public
     returns (bool)
   {
     Registry _client = Registry(msg.sender);
-    string memory _writePermAttr = _strConcat(WRITE_PERMISSION, _attribute);
-    bool _hasWritePerm = _client.hasAttribute(_operator, _writePermAttr);
-    return (_operator == _client.owner() || _hasWritePerm);
-  }
-
-  function _strConcat(
-    string _x,
-    string _y
-  )
-    internal
-    pure
-    returns (string)
-  {
-    bytes memory bx = bytes(_x);
-    bytes memory by = bytes(_y);
-    string memory xy = new string(bx.length.add(by.length));
-    bytes memory bxy = bytes(xy);
-    uint k = 0;
-    for (uint256 i = 0; i < bx.length; i++) bxy[k++] = bx[i];
-    for (i = 0; i < by.length; i++) bxy[k++] = by[i];
-    return string(bxy);
+    if (_operator == _client.owner()) {
+      return true;
+    } else if (_client.hasAttribute(_operator, Attribute.AttributeType.ROLE_MANAGER)) {
+      return (_attribute == Attribute.AttributeType.ROLE_OPERATOR);
+    } else if (_client.hasAttribute(_operator, Attribute.AttributeType.ROLE_OPERATOR)) {
+      return (_attribute != Attribute.AttributeType.ROLE_OPERATOR &&
+              _attribute != Attribute.AttributeType.ROLE_MANAGER);
+    }
   }
 }
