@@ -5,9 +5,10 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-const Claimable = require("./ownership/Claimable.js")
+const Claimable = require("./ownership/Claimable.js");
 const StandartToken = require("./base-token/StandardToken.js");
-const BurnableExToken	 = require("./BurnableExToken.js")
+const BurnableExToken	 = require("./BurnableExToken.js");
+const CompliantToken	   = require("./CompliantToken.js");
 
 const PATToken = artifacts.require("./PATToken.sol");
 
@@ -54,6 +55,10 @@ contract('PATToken', function (accounts) {
 
   describe('StandartToken', function() {
     StandartToken.check(accounts, deployContract);
+  });
+
+  describe('CompliantToken', function() {
+    CompliantToken.check(accounts, deployContract);
   });
 
 	describe('BurnableExToken', function() {
