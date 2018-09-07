@@ -29,7 +29,7 @@ import './WithdrawalToken.sol';
  *  - attempts to reject ether sent and allows any ether held to be transferred out.
  *  - allows the new owner to accept the ownership transfer, the owner can cancel the transfer if needed.
  **/
-contract PATToken is Contactable, AssetInfo, BurnableExToken, CanDelegateToken, DelegateToken, TokenWithFees, WithdrawalToken, CompliantToken, PausableToken {
+contract PATToken is Contactable, AssetInfo, BurnableExToken, CanDelegateToken, DelegateToken, TokenWithFees, CompliantToken, WithdrawalToken, PausableToken {
   string public name = "PATToken";
   string public symbol = "PAT";
 
