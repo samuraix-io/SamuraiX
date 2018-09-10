@@ -5,15 +5,20 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-const Claimable = require("./ownership/Claimable.js");
+const AssetInfo = require("./AssetInfo.js");
+const ClaimableEx = require("./ownership/ClaimableEx.js");
 const StandartToken = require("./base-token/StandardToken.js");
-const BurnableExToken	 = require("./BurnableExToken.js");
-const CompliantToken	   = require("./CompliantToken.js");
+const BurnableExToken   = require("./BurnableExToken.js");
+const CanReclaimToken   = require("./zeppelin/contracts/ownership/CanReclaimToken.js");
+const MintableToken   = require("./base-token/MintableToken.js");
+const PausableToken = require("./base-token/PausableToken.js");
+const WithdrawalToken   = require("./WithdrawalToken.js");
+const CompliantToken     = require("./CompliantToken.js");
 
 const PATToken = artifacts.require("./PATToken.sol");
 
 contract('PATToken', function (accounts) {
-	let token;
+  let token;
   var systemWallet = accounts[7]
 
   let tokenName = "PATToken";
@@ -21,11 +26,11 @@ contract('PATToken', function (accounts) {
   let varLinkDoc = 'https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY';
   let fixedLinkDoc = 'https://drive.google.com/open?id=1JYpdAqubjvHvUuurwX7om0dDcA5ycRhc';
 
-	before(async function () {
+  before(async function () {
     token = await PATToken.deployed();
   });
 
-	describe('changeTokenName()', function() {
+  describe('changeTokenName()', function() {
     it('Should allow owner to set new name and symbol', async function() {
       let _oldTokenName = await token.name();
       let _oldTokenSymbol = await token.symbol();
@@ -35,11 +40,11 @@ contract('PATToken', function (accounts) {
       assert.notEqual(_oldTokenSymbol, _newTokenSymbol);
 
       await token.changeTokenName(_newTokenName, _newTokenSymbol);
-			let _currName = await token.name();
+      let _currName = await token.name();
       let _currSymbol = await token.symbol();
 
-			assert.equal(_currName, _newTokenName);
-			assert.equal(_currSymbol, _newTokenSymbol);
+      assert.equal(_currName, _newTokenName);
+      assert.equal(_currSymbol, _newTokenSymbol);
     });
 
     it('Should reject non- owner to set new name and symbol', async function() {
@@ -49,23 +54,43 @@ contract('PATToken', function (accounts) {
     });
   });
 
-  describe('Claimable', function() {
-    Claimable.check(accounts, deployContract);
-	});
+  describe('AssetInfo', function() {
+    AssetInfo.check(accounts, deployContract);
+  });
+
+  describe('CanReclaimToken', function() {
+    CanReclaimToken.check(accounts, deploy, deployContract);
+  });
+
+  describe('ClaimableEx', function() {
+    ClaimableEx.check(accounts, deployContract);
+  });
 
   describe('StandartToken', function() {
     StandartToken.check(accounts, deployContract);
+  });
+
+  describe('MintableToken', function() {
+    MintableToken.check(accounts, deployContract)
+  });
+
+  describe('PausableToken', function() {
+    PausableToken.check(accounts, deployContract)
+  });
+
+  describe('WithdrawalToken', function() {
+    WithdrawalToken.check(accounts, deployContract)
   });
 
   describe('CompliantToken', function() {
     CompliantToken.check(accounts, deployContract);
   });
 
-	describe('BurnableExToken', function() {
+  describe('BurnableExToken', function() {
     BurnableExToken.check(accounts, deployContract);
-	});
+  });
 
-	async function deploy() {
+  async function deploy() {
     var _token = await PATToken.new(tokenName, tokenSymbol, fixedLinkDoc, varLinkDoc, systemWallet);
     return _token;
   }

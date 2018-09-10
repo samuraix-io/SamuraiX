@@ -9,12 +9,12 @@ const BalanceSheet = artifacts.require("./BalanceSheet.sol");
 const bn = require('../helpers/bignumber.js');
 
 contract('BalanceSheet', function (accounts) {
-	var balanceSheetContract;
+  var balanceSheetContract;
   const owner = accounts[0];
   const user = accounts[1];
   const otherUser = accounts[2];
 
-	before(async function () {
+  before(async function () {
     balanceSheetContract = await BalanceSheet.deployed();
   });
 
@@ -25,7 +25,7 @@ contract('BalanceSheet', function (accounts) {
     });
   })
 
-	describe('setBalance()', function() {
+  describe('setBalance()', function() {
     it('Should allow owner to to set new balance for user', async function() {
       let _newBalance = bn.tokens(10);
       let _oldUserBalance = await balanceSheetContract.balanceOf(user).should.be.fulfilled;
