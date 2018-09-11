@@ -33,6 +33,13 @@ function check(accounts, deployTokenCb) {
 
   });
 
+  describe('totalSupply()', function() {
+    it('should allow to get totalSupply', async function() {
+      let _currTotalSupply = await token.totalSupply();
+      _currTotalSupply.should.be.bignumber.equal(0);
+    });
+  });
+
   describe('approve()', function() {
     it('should allow to approve tokens', async function() {
       await token.approve(purchaser, bn.tokens(100), {from: investor}).should.be.fulfilled;

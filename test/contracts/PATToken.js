@@ -14,6 +14,8 @@ const TokenWithFees    = require("./TokenWithFees.js");
 const TraceableToken   = require("./TraceableToken.js");
 const CanReclaimToken   = require("./zeppelin/contracts/ownership/CanReclaimToken.js");
 const Contactable       = require("./zeppelin/contracts/ownership/Contactable.js");
+const CanDelegateToken  = require("./delegate/CanDelegateToken.js");
+const DelegateToken     = require("./delegate/DelegateToken.js");
 const ClaimableEx       = require("./ownership/ClaimableEx.js");
 const StandartToken     = require("./base-token/StandardToken.js");
 const MintableToken     = require("./base-token/MintableToken.js");
@@ -101,6 +103,14 @@ contract('PATToken', function (accounts) {
 
   describe('CompliantToken', function() {
     CompliantToken.check(accounts, deployContract);
+  });
+
+  describe('DelegateToken', function() {
+    DelegateToken.check(accounts, deployContract);
+  });
+
+  describe('CanDelegateToken', function() {
+    CanDelegateToken.check(accounts, deploy, deployContract);
   });
 
   describe('BurnableExToken', function() {

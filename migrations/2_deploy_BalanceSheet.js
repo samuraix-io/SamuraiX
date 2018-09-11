@@ -18,7 +18,7 @@ module.exports = function(deployer, network) {
     await deployer.link(SaveMath, BalanceSheet);
     return deployer.deploy(BalanceSheet, {overwrite: overwrite});
   }).then(() => {
-      return SaveMath.deployed();
+      return BalanceSheet.deployed();
   }).catch((err) => {
       console.error(err);
       process.exit(1);
