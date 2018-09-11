@@ -13,7 +13,7 @@ contract("Manageable", function(accounts) {
   var manageableInstance;
 
   const registryAccount     = accounts[0];
-  const manageableAccount   = accounts[1];
+  const owner               = accounts[1];
   const manager             = accounts[2];
   const guess               = accounts[3];
 
@@ -26,12 +26,12 @@ contract("Manageable", function(accounts) {
 
   beforeEach("Manageable", async function() {
     registryInstance = await Registry.new({from: registryAccount}).should.be.fulfilled;
-    manageableInstance = await Manageable.new({from: manageableAccount}).should.be.fulfilled;
+    manageableInstance = await Manageable.new({from: owner}).should.be.fulfilled;
   });
 
   describe("isManager()", function() {
     beforeEach("isManager()", async function() {
-      await manageableInstance.setRegistry(registryInstance.address, {from: manageableAccount}).should.be.fulfilled;
+      await manageableInstance.setRegistry(registryInstance.address, {from: owner}).should.be.fulfilled;
     });
 
     it("Should return true if address is manager", async function() {

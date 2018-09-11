@@ -13,7 +13,7 @@ contract("Operatable", function(accounts) {
   var operatableInstance;
 
   const registryAccount     = accounts[0];
-  const operatableAccount   = accounts[1];
+  const owner               = accounts[1];
   const operator            = accounts[2];
   const guess               = accounts[3];
 
@@ -26,12 +26,12 @@ contract("Operatable", function(accounts) {
 
   beforeEach("Operatable", async function() {
     registryInstance = await Registry.new({from: registryAccount}).should.be.fulfilled;
-    operatableInstance = await Operatable.new({from: operatableAccount}).should.be.fulfilled;
+    operatableInstance = await Operatable.new({from: owner}).should.be.fulfilled;
   });
 
   describe("isOperator()", function() {
     beforeEach("isOperator()", async function() {
-      await operatableInstance.setRegistry(registryInstance.address, {from: operatableAccount}).should.be.fulfilled;
+      await operatableInstance.setRegistry(registryInstance.address, {from: owner}).should.be.fulfilled;
     });
 
     it("Should return true if address is operator", async function() {

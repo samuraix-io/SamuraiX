@@ -154,7 +154,7 @@ contract('Registry', function (accounts) {
             (await registry.hasAttribute(guess, ROLE_OPERATOR)).should.equal(false);
           });
 
-          it('Should reject if guess clear ROLE_OPERATOR attribute', async function() {
+          it('Should reject if guess set ROLE_OPERATOR attribute', async function() {
             await registry.setAttribute(operator, ROLE_OPERATOR, "Set ROLE_OPERATOR attribute", {from: guess}).should.be.rejected;
             (await registry.hasAttribute(operator, ROLE_OPERATOR)).should.equal(false);
           });
@@ -211,7 +211,7 @@ contract('Registry', function (accounts) {
             (await registry.hasAttribute(guess, BLACKLISTED)).should.equal(true);
           });
 
-          it('Should reject if manager set/clear IS_BLACKLISTED attribute', async function() {
+          it('Should reject if manager set IS_BLACKLISTED attribute', async function() {
             await registry.setAttribute(manager, ROLE_MANAGER, "Set ROLE_MANAGER attribute", {from: owner}).should.be.fulfilled;
             (await registry.hasAttribute(manager, ROLE_MANAGER)).should.equal(true);
 
@@ -227,7 +227,7 @@ contract('Registry', function (accounts) {
             (await registry.hasAttribute(guess, BLACKLISTED)).should.equal(true);
           });
 
-          it('Should reject if guess set/clear IS_BLACKLISTED attribute', async function() {
+          it('Should reject if guess set IS_BLACKLISTED attribute', async function() {
             await registry.setAttribute(guess, BLACKLISTED, "Set BLACKLISTED attribute", {from: guess}).should.be.rejected;
             (await registry.hasAttribute(guess, BLACKLISTED)).should.equal(false);
           });
@@ -252,7 +252,7 @@ contract('Registry', function (accounts) {
             (await registry.hasAttribute(guess, BLACKLISTED)).should.equal(false);
           });
 
-          it('Should reject if manager set/clear IS_BLACKLISTED attribute', async function() {
+          it('Should reject if manager clear IS_BLACKLISTED attribute', async function() {
             await registry.setAttribute(manager, ROLE_MANAGER, "Set ROLE_MANAGER attribute", {from: owner}).should.be.fulfilled;
             (await registry.hasAttribute(manager, ROLE_MANAGER)).should.equal(true);
 
@@ -270,7 +270,7 @@ contract('Registry', function (accounts) {
             (await registry.hasAttribute(guess, BLACKLISTED)).should.equal(false);
           });
 
-          it('Should reject if guess set/clear IS_BLACKLISTED attribute', async function() {
+          it('Should reject if guess clear IS_BLACKLISTED attribute', async function() {
             await registry.clearAttribute(guess, BLACKLISTED, "Clear BLACKLISTED attribute", {from: guess}).should.be.rejected;
           });
         });
