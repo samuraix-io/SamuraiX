@@ -10,6 +10,8 @@ const AssetInfo         = require("./AssetInfo.js");
 const WithdrawalToken   = require("./WithdrawalToken.js");
 const CompliantToken    = require("./CompliantToken.js");
 const BurnableExToken   = require("./BurnableExToken.js");
+const TokenWithFees    = require("./TokenWithFees.js");
+const TraceableToken   = require("./TraceableToken.js");
 const CanReclaimToken   = require("./zeppelin/contracts/ownership/CanReclaimToken.js");
 const Contactable       = require("./zeppelin/contracts/ownership/Contactable.js");
 const ClaimableEx       = require("./ownership/ClaimableEx.js");
@@ -71,6 +73,14 @@ contract('PATToken', function (accounts) {
 
   describe('ClaimableEx', function() {
     ClaimableEx.check(accounts, deployContract);
+  });
+
+  describe('TokenWithFees', function() {
+    TokenWithFees.check(accounts, deployContract);
+  });
+
+  describe('TraceableToken', function() {
+    TraceableToken.check(accounts, deployContract);
   });
 
   describe('StandartToken', function() {
