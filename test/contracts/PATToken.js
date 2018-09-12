@@ -5,15 +5,18 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-const AssetInfo = require("./AssetInfo.js");
-const ClaimableEx = require("./ownership/ClaimableEx.js");
-const StandartToken = require("./base-token/StandardToken.js");
+
+const AssetInfo         = require("./AssetInfo.js");
+const WithdrawalToken   = require("./WithdrawalToken.js");
+const CompliantToken    = require("./CompliantToken.js");
 const BurnableExToken   = require("./BurnableExToken.js");
 const CanReclaimToken   = require("./zeppelin/contracts/ownership/CanReclaimToken.js");
-const MintableToken   = require("./base-token/MintableToken.js");
-const PausableToken = require("./base-token/PausableToken.js");
-const WithdrawalToken   = require("./WithdrawalToken.js");
-const CompliantToken     = require("./CompliantToken.js");
+const Contactable       = require("./zeppelin/contracts/ownership/Contactable.js");
+const ClaimableEx       = require("./ownership/ClaimableEx.js");
+const StandartToken     = require("./base-token/StandardToken.js");
+const MintableToken     = require("./base-token/MintableToken.js");
+const PausableToken     = require("./base-token/PausableToken.js");
+
 
 const PATToken = artifacts.require("./PATToken.sol");
 
@@ -56,6 +59,10 @@ contract('PATToken', function (accounts) {
 
   describe('AssetInfo', function() {
     AssetInfo.check(accounts, deployContract);
+  });
+
+  describe('Contactable', function() {
+    Contactable.check(accounts, deployContract);
   });
 
   describe('CanReclaimToken', function() {
