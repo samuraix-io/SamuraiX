@@ -8,7 +8,7 @@ const should = require('chai')
 .should();
 
 const bn = require('./helpers/bignumber.js');
-
+const regAtt = require('./helpers/registryAttributeConst.js');
 function check(accounts, deployTokenCb) {
   var token;
   var registry;
@@ -21,10 +21,10 @@ function check(accounts, deployTokenCb) {
     token = await deployTokenCb();
     balanceSheet = await BalanceSheet.new({from:owner });
     registry = await Registry.new({from:owner });
-    await registry.setAttribute(investor, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-    await registry.setAttribute(purchaser, 3, "set_att_as_HAS_PASSED_KYC_AML").should.be.fulfilled;
-    await registry.setAttribute(owner, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-    await registry.setAttribute(owner, 0, "set_attribute_has_role_manager").should.be.fulfilled;
+    await registry.setAttribute(investor, regAtt.HAS_PASSED_KYC_AML, "set HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+    await registry.setAttribute(purchaser, regAtt.HAS_PASSED_KYC_AML, "set HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+    await registry.setAttribute(owner, regAtt.HAS_PASSED_KYC_AML, "set HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+
     await token.setRegistry(registry.address, {from : owner}).should.be.fulfilled;
     await balanceSheet.transferOwnership(token.address).should.be.fulfilled;
     await token.setBalanceSheet(balanceSheet.address).should.be.fulfilled;

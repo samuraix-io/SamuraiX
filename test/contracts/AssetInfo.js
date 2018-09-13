@@ -1,6 +1,6 @@
 const BigNumber = web3.BigNumber;
 const Registry = artifacts.require('Registry')
-
+const regAtt = require('./helpers/registryAttributeConst.js');
 
 const should = require('chai')
   .use(require('chai-as-promised'))
@@ -17,7 +17,7 @@ function check(accounts, deployTokenCb) {
   beforeEach(async function () {
     token = await deployTokenCb();
     registry = await Registry.new({from:owner });
-    await registry.setAttribute(manager, 0, "Set HAS_ROLE_MANAGER ON").should.be.fulfilled;
+    await registry.setAttribute(manager, regAtt.ROLE_MANAGER, "Set ROLE_MANAGER ON").should.be.fulfilled;
     await token.setRegistry(registry.address, {from : owner}).should.be.fulfilled;
   })
 

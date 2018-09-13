@@ -9,6 +9,7 @@ const Should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 const bn = require('../helpers/bignumber.js');
+const regAtt = require('../helpers/registryAttributeConst.js');
 
 function check(accounts, deployTokenCb) {
   var newToken;
@@ -37,8 +38,8 @@ function check(accounts, deployTokenCb) {
     registry = await Registry.new({from:owner });
 
     await balanceSheet.transferOwnership(oldToken.address).should.be.fulfilled;
-    await registry.setAttribute(purchaser, 3, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
-    await registry.setAttribute(investor, 3, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
+    await registry.setAttribute(purchaser, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
+    await registry.setAttribute(investor, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
 
     await oldToken.setBalanceSheet(balanceSheet.address).should.be.fulfilled;
     await oldToken.setRegistry(registry.address, {from : owner}).should.be.fulfilled;

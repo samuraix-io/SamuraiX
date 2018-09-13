@@ -4,6 +4,7 @@ const Registry = artifacts.require('./Registry.sol')
 const bn = require('./helpers/bignumber.js');
 const BalanceSheet = artifacts.require("./BalanceSheet.sol");
 const BurnableToken   = require("./base-token/BurnableToken.js")
+const regAtt = require('./helpers/registryAttributeConst.js');
 
 const should = require('chai')
   .use(require('chai-as-promised'))
@@ -32,10 +33,10 @@ function check(accounts, deployTokenCb) {
     await balanceSheet.transferOwnership(token.address).should.be.fulfilled;
     // 3 : Attribute.AttributeType.HAS_PASSED_KYC_AML
     // 0 : Attribute.AttributeType.ROLE_MANAGER
-    await registry.setAttribute(investor_1, 3, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
-    await registry.setAttribute(investor_2, 3, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
-    await registry.setAttribute(owner, 0, "Set HAS_ROLE_MANAGER ON").should.be.fulfilled;
-    await registry.setAttribute(otherManager, 0, "Set HAS_ROLE_MANAGER ON").should.be.fulfilled;
+    await registry.setAttribute(investor_1, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
+    await registry.setAttribute(investor_2, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
+    await registry.setAttribute(owner, regAtt.ROLE_MANAGER, "Set ROLE_MANAGER ON").should.be.fulfilled;
+    await registry.setAttribute(otherManager, regAtt.ROLE_MANAGER, "Set ROLE_MANAGER ON").should.be.fulfilled;
 
     await token.setBalanceSheet(balanceSheet.address).should.be.fulfilled;
     await token.setRegistry(registry.address, {from : owner}).should.be.fulfilled;

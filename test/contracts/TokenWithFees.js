@@ -6,6 +6,8 @@ const Attribute = artifacts.require('Attribute')
 const expectEvent = require('./helpers/expectEvent');
 const BigNumber = web3.BigNumber;
 const bn = require('./helpers/bignumber.js');
+const regAtt = require('./helpers/registryAttributeConst.js');
+
 const should = require('chai')
 .use(require('chai-as-promised'))
 .use(require('chai-bignumber')(BigNumber))
@@ -23,16 +25,14 @@ function check(accounts, deployTokenCb) {
   var wallet    = accounts[5];
 
   const TEN_TOKENS = bn.tokens(10);
-  const ROLE_MANAGER = 0;
-  const PASSED_KYC_ALM = 3;
 
   beforeEach(async function () {
     token = await deployTokenCb();
     balanceSheet = await BalanceSheet.new({from: owner});
     registry = await Registry.new({from: owner});
-    await registry.setAttribute(owner, ROLE_MANAGER, "set_attribute_has_role_manager").should.be.fulfilled;
-    await registry.setAttribute(manager, ROLE_MANAGER, "set_attribute_has_role_manager").should.be.fulfilled;
-    await registry.setAttribute(manager1, ROLE_MANAGER, "set_attribute_has_role_manager").should.be.fulfilled;
+    await registry.setAttribute(owner, regAtt.ROLE_MANAGER, "set ROLE_MANAGER ON").should.be.fulfilled;
+    await registry.setAttribute(manager, regAtt.ROLE_MANAGER, "set ROLE_MANAGER ON").should.be.fulfilled;
+    await registry.setAttribute(manager1, regAtt.ROLE_MANAGER, "set ROLE_MANAGER ON").should.be.fulfilled;
     await token.setRegistry(registry.address, {from : owner}).should.be.fulfilled;
     await balanceSheet.transferOwnership(token.address).should.be.fulfilled;
     await token.setBalanceSheet(balanceSheet.address).should.be.fulfilled;
@@ -110,8 +110,8 @@ function check(accounts, deployTokenCb) {
 
   describe('transfer()', function(){
     beforeEach(async function() {
-      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
+      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
       await token.approve(sender, TEN_TOKENS, {from: receiver}).should.be.fulfilled;
       let val = await token.allowance(sender, receiver);
       (await registry.hasAttribute(sender, 3)).should.equal(true);
@@ -192,9 +192,9 @@ function check(accounts, deployTokenCb) {
 
   describe('transferFrom()', function() {
     beforeEach(async function() {
-      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-      await registry.setAttribute(owner, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
+      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+      await registry.setAttribute(owner, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
       await token.approve(sender, TEN_TOKENS, {from: receiver}).should.be.fulfilled;
       let val = await token.allowance(sender, receiver);
       (await registry.hasAttribute(sender, 3)).should.equal(true);
@@ -207,8 +207,8 @@ function check(accounts, deployTokenCb) {
       let system_wallet = await token.beneficiary();
       await registry.setAttribute(owner, 4, "NO_FEE").should.be.fulfilled;
       await registry.setAttribute(receiver, 4, "NO_FEE").should.be.fulfilled;
-      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
+      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
       await token.approve(owner, TEN_TOKENS, {from: sender}).should.be.fulfilled;
       await token.transferFrom(sender, receiver ,TEN_TOKENS , {from:owner});
       let after_sender = await token.balanceOf(sender);
@@ -223,8 +223,8 @@ function check(accounts, deployTokenCb) {
       let before_recevier = await token.balanceOf(receiver);
       let system_wallet = await token.beneficiary();
       await registry.setAttribute(owner, 4, "NO_FEE").should.be.fulfilled;
-      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
+      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
       await token.approve(owner, TEN_TOKENS, {from: sender}).should.be.fulfilled;
       await token.transferFrom(sender, receiver ,TEN_TOKENS , {from:owner});
       let before = await token.balanceOf(sender);
@@ -240,8 +240,8 @@ function check(accounts, deployTokenCb) {
       let before_recevier = await token.balanceOf(receiver);
       let system_wallet = await token.beneficiary();
       await token.changeFees(1, 8, { from: owner });
-      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
-      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_ALM : ON").should.be.fulfilled;
+      await registry.setAttribute(sender, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
+      await registry.setAttribute(receiver, 3, "set_att HAS_PASSED_KYC_AML : ON").should.be.fulfilled;
       await token.approve(owner, TEN_TOKENS, {from: sender}).should.be.fulfilled;
       await token.transferFrom(sender, receiver ,TEN_TOKENS , {from:owner});
       let before = await token.balanceOf(sender);
