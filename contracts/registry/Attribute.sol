@@ -11,7 +11,7 @@ library Attribute {
     USER_DEFINED
   }
 
-  function toUint256(AttributeType _type) public pure returns (uint256) {
+  function toUint256(AttributeType _type) internal pure returns (uint256) {
     return uint256(_type);
   }
 }
