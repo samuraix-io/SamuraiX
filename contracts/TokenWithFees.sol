@@ -9,14 +9,14 @@ import "./base-token/StandardToken.sol";
  * @dev This contract allows for transaction fees to be assessed on transfer.
  **/
 contract TokenWithFees is Manageable, StandardToken {
-  uint256 public transferFeeNumerator = 0;
-  uint256 public transferFeeDenominator = 10000;
+  uint8 public transferFeeNumerator = 0;
+  uint8 public transferFeeDenominator = 100;
   // All transaction fees are paid to this address.
   address public beneficiary;
 
   event ChangeWallet(address indexed addr);
-  event ChangeFees(uint256 transferFeeNumerator,
-                   uint256 transferFeeDenominator);
+  event ChangeFees(uint8 transferFeeNumerator,
+                   uint8 transferFeeDenominator);
 
   constructor(address _wallet) public {
     beneficiary = _wallet;
@@ -60,8 +60,8 @@ contract TokenWithFees is Manageable, StandardToken {
   }
 
   function changeFees(
-    uint256 _transferFeeNumerator,
-    uint256 _transferFeeDenominator
+    uint8 _transferFeeNumerator,
+    uint8 _transferFeeDenominator
   )
     public
     onlyManager
