@@ -23,7 +23,7 @@ function check(accounts, deployTokenCb) {
 
   describe('changeRunningDocuments()', function() {
     it("should allow manager to change running document", async function (){
-      let _newRunningDoc = "new_link";
+      let _newRunningDoc = "http://bit.ly/2R5TE0T";
       let _oldRunningDoc = await token.varDocsLink();
       assert.notEqual(_oldRunningDoc, _newRunningDoc);
 
@@ -33,12 +33,12 @@ function check(accounts, deployTokenCb) {
     });
 
     it("should reject non-manager to change running document", async function (){
-      let _newRunningDoc = "new_link";
+      let _newRunningDoc = "http://bit.ly/2R5TE0T";
       await token.changeRunningDocuments(_newRunningDoc, {from : otherUser}).should.be.rejected;
     });
 
     it("changeRunningDocuments() logs events", async function () {
-      let _newRunningDoc = "new_link";
+      let _newRunningDoc = "http://bit.ly/2R5TE0T";
       let _oldRunningDoc = await token.varDocsLink();
       assert.notEqual(_oldRunningDoc, _newRunningDoc);
 

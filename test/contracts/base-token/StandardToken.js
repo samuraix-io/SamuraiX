@@ -195,18 +195,9 @@ function check(accounts, deployTokenCb) {
       await token.transferFrom(investor, purchaser, amount.plus(bn.tokens(1)), {from: purchaser}).should.be.rejected;
     });
 
-    it('should reject transferring an amount of max uint256', async function() {
-      var totalTokens = await token.TOTAL_TOKENS();
-      await token.mint(investor, totalTokens).should.be.fulfilled;
-      await token.approve(purchaser, bn.MAX_UINT, {from: investor}).should.be.fulfilled;
-      await token.transferFrom(investor, purchaser, bn.MAX_UINT, {from: purchaser}).should.be.rejected;
-    });
-
     it('transferring an amount which exceeds max uint256 should be equivalent 0 tokens', async function() {
-      var totalTokens = await token.TOTAL_TOKENS();
-      await token.mint(investor, totalTokens).should.be.fulfilled;
-      await token.approve(purchaser, bn.OVER_UINT, {from: investor}).should.be.fulfilled;
-      (await token.allowance(investor, purchaser)).should.be.bignumber.equal(0);
+      await token.mint(investor, bn.MAX_UINT).should.be.fulfilled;
+      await token.approve(purchaser, bn.MAX_UINT, {from: investor}).should.be.fulfilled;
 
       var balance1Before = await token.balanceOf(investor);
       var balance2Before = await token.balanceOf(purchaser);
@@ -261,15 +252,8 @@ function check(accounts, deployTokenCb) {
       await token.transfer(purchaser, bn.tokens(101), {from: investor}).should.be.rejected;
     });
 
-    it('should reject transferring an amount of max uint256', async function() {
-      var totalTokens = await token.TOTAL_TOKENS();
-      await token.mint(investor, totalTokens).should.be.fulfilled;
-      await token.transfer(purchaser, bn.MAX_UINT, {from: investor}).should.be.rejected;
-    });
-
     it('transferring an amount which exceeds max uint256 should be equivalent 0 tokens', async function() {
-      var totalTokens = await token.TOTAL_TOKENS();
-      await token.mint(investor, totalTokens).should.be.fulfilled;
+      await token.mint(investor, bn.MAX_UINT).should.be.fulfilled;
       var balance1Before = await token.balanceOf(investor);
       var balance2Before = await token.balanceOf(purchaser);
       await token.transfer(purchaser, bn.OVER_UINT, {from: investor}).should.be.fulfilled;

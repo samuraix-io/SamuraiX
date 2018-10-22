@@ -67,11 +67,10 @@ function check(accounts, deployTokenCb) {
       await token.mint(investor, bn.tokens(1), {from: investor}).should.be.rejected;
     });
 
-    it('should not mint more than TOTAL_TOKENS', async function () {
-      var totalTokens = await token.TOTAL_TOKENS();
+    it('can mint without upper limit (less than or equal to max uint256)', async function () {
+      await token.mint(investor, bn.MAX_UINT).should.be.fulfilled;
       var totalSupply = await token.totalSupply();
-      var remaining = totalTokens.minus(totalSupply);
-      await token.mint(investor, remaining.plus(bn.tokens(1))).should.be.rejected;
+      totalSupply.should.be.bignumber.equal(bn.MAX_UINT);
     });
 
     it('minting an amount that exceeds max uint256 should be equivalent with minting 0 tokens', async function () {

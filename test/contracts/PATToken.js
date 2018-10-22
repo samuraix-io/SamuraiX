@@ -26,12 +26,13 @@ const PATToken = artifacts.require("./PATToken.sol");
 
 contract('PATToken', function (accounts) {
   let token;
-  var systemWallet = accounts[7]
+  var systemWallet = accounts[7];
+  var investor = accounts[1];
 
-  let tokenName = "PATToken";
-  let tokenSymbol = "PAT";
-  let varLinkDoc = 'https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY';
-  let fixedLinkDoc = 'https://drive.google.com/open?id=1JYpdAqubjvHvUuurwX7om0dDcA5ycRhc';
+  let tokenName = "RAX Mt.Fuji";
+  let tokenSymbol = "FUJI";
+  let varLinkDoc = 'http://bit.ly/2P9AWZ9';
+  let fixedLinkDoc = 'http://bit.ly/2R5TE0T';
 
   before(async function () {
     token = await PATToken.deployed();
@@ -41,23 +42,29 @@ contract('PATToken', function (accounts) {
     it('Should allow owner to set new name and symbol', async function() {
       let _oldTokenName = await token.name();
       let _oldTokenSymbol = await token.symbol();
-      let _newTokenName = "ANToken";
-      let _newTokenSymbol = "ANT";
+      let _newTokenName = "RAX Mt.Fuji_1";
+      let _newTokenSymbol = "FUJI_1";
       assert.notEqual(_oldTokenName, _newTokenName);
       assert.notEqual(_oldTokenSymbol, _newTokenSymbol);
 
-      await token.changeTokenName(_newTokenName, _newTokenSymbol);
+      const {logs} = await token.changeTokenName(_newTokenName, _newTokenSymbol);
       let _currName = await token.name();
       let _currSymbol = await token.symbol();
 
       assert.equal(_currName, _newTokenName);
       assert.equal(_currSymbol, _newTokenSymbol);
+
+      // Should log event
+      const event = logs.find(e => e.event === 'ChangeTokenName');
+      event.should.exist;
+      (event.args.newName).should.equal(_newTokenName);
+      (event.args.newSymbol).should.equal(_newTokenSymbol);
     });
 
-    it('Should reject non- owner to set new name and symbol', async function() {
-      let _newTokenName = "ANToken";
-      let _newTokenSymbol = "ANT";
-      await token.changeTokenName(_newTokenName, _newTokenSymbol);
+    it('Should reject non-owner to set new name and symbol', async function() {
+      let _newTokenName = "RAX Mt.Fuji_1";
+      let _newTokenSymbol = "FUJI_1";
+      await token.changeTokenName(_newTokenName, _newTokenSymbol, {from: investor}).should.be.rejected;
     });
   });
 
@@ -85,7 +92,7 @@ contract('PATToken', function (accounts) {
     TraceableToken.check(accounts, deployContract);
   });
 
-  describe('StandartToken', function() {
+  describe('StandardToken', function() {
     StandartToken.check(accounts, deployContract);
   });
 
