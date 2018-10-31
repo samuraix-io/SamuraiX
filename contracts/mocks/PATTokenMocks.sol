@@ -13,11 +13,11 @@ import '../WithdrawalToken.sol';
 
 
 /**
- * @title PAT token.
- * @dev PAT is a ERC20 token that:
- *  - caps total number at 100 million tokens.
+ * @title PATTokenMock token.
+ * @dev PATTokenMock is a ERC20 token that:
+ *  - has no tokens limit.
+ *  - mints new tokens for each new property (real asset).
  *  - can pause and unpause token transfer (and authorization) actions.
- *  - mints new tokens when purchased.
  *  - token holders can be distributed profit from asset manager.
  *  - contains real asset information.
  *  - can delegate to a new contract.
@@ -34,7 +34,6 @@ contract PATTokenMock is Contactable, AssetInfo, BurnableExToken, CanDelegateTok
   string public symbol = "PAT";
 
   uint8 public constant decimals = 18;
-  uint256 public constant TOTAL_TOKENS = 100 * (10**6) * (10 ** uint256(decimals));
 
   event ChangeTokenName(string newName, string newSymbol);
 
@@ -64,26 +63,6 @@ contract PATTokenMock is Contactable, AssetInfo, BurnableExToken, CanDelegateTok
     name = _name;
     symbol = _symbol;
     emit ChangeTokenName(_name, _symbol);
-  }
-
-  /**
-   * @dev Mints tokens to a beneficiary address.
-   * Cap minting so that totalSupply <= TOTAL_TOKENS.
-   * @param _to Who got the tokens.
-   * @param _amount Amount of tokens.
-   */
-  function mint(
-    address _to,
-    uint256 _amount
-  )
-    public
-    hasMintPermission
-    canMint
-    returns(bool)
-  {
-    require(totalSupply().add(_amount) <= TOTAL_TOKENS);
-
-    return super.mint(_to, _amount);
   }
 
   /**
