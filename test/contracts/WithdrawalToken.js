@@ -69,7 +69,9 @@ function check(accounts, deployTokenCb) {
     it("Should reject tranfer from investor to zero address", async function () {
       let _oldBalance = await token.balanceOf(investor);
       let _transAmount =  _oldBalance.minus(bn.tokens(1));
-      await token.transferFrom(investor, ZeroAddress, _transAmount, {from: investor}).should.be.rejected;
+      await token.approve(purchaser, _transAmount, {from: investor}).should.be.fulfilled;
+      await registry.setAttribute(ZeroAddress, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
+      await token.transferFrom(investor, ZeroAddress, _transAmount, {from: purchaser}).should.be.rejected;
     });
   });
 }
