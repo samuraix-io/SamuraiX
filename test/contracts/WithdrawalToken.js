@@ -15,16 +15,17 @@ function check(accounts, deployTokenCb) {
   var token;
   var balanceSheet;
   var registry;
+  var redeemAddress;
   const owner = accounts[0];
   const investor = accounts[1];
   const purchaser = accounts[2];
-  const ZeroAddress = '0x0';
   const amount = bn.tokens(10);
 
   beforeEach(async function () {
     token = await deployTokenCb();
     balanceSheet = await BalanceSheet.new({from:owner });
     registry = await Registry.new({from:owner });
+    redeemAddress = await token.redeemAddress();
 
     await balanceSheet.transferOwnership(token.address).should.be.fulfilled;
     // 3 : Attribute.AttributeType.HAS_PASSED_KYC_AML
@@ -39,24 +40,24 @@ function check(accounts, deployTokenCb) {
   });
 
   describe('transfer()', function() {
-    it("Should allow investor to transfer balance to zero address", async function () {
+    it("Should allow investor to transfer to redeem address", async function () {
       let _oldBalance = await token.balanceOf(investor);
       let _transAmount =  _oldBalance.minus(bn.tokens(1));
-      await token.transfer(ZeroAddress, _transAmount, {from : investor}).should.be.fulfilled;
+      await token.transfer(redeemAddress, _transAmount, {from : investor}).should.be.fulfilled;
     });
 
-    it("Transfer balance to zero address is like burn balance", async function () {
+    it("Transfer to redeem address is like burning tokens", async function () {
       let _oldBalance = await token.balanceOf(investor);
       let _transAmount =  _oldBalance.minus(bn.tokens(1));
-      await token.transfer(ZeroAddress, _transAmount, {from : investor}).should.be.fulfilled;
+      await token.transfer(redeemAddress, _transAmount, {from : investor}).should.be.fulfilled;
       let _currBalance = await token.balanceOf(investor);
       _oldBalance.minus(_transAmount).should.be.bignumber.equal(_currBalance);
     });
 
-    it('Should log burn emit when transfer to zero address', async function () {
+    it('Should log burn event when transferring to redeem address', async function () {
       let _oldBalance = await token.balanceOf(investor);
       let _transAmount =  _oldBalance.minus(bn.tokens(1));
-      const {logs} = await token.transfer(ZeroAddress, _transAmount, {from : investor}).should.be.fulfilled;
+      const {logs} = await token.transfer(redeemAddress, _transAmount, {from : investor}).should.be.fulfilled;
       const tranferLog = logs.find(e => e.event === 'Burn');
       tranferLog.should.exist;
       (tranferLog.args.burner).should.equal(investor);
@@ -66,12 +67,12 @@ function check(accounts, deployTokenCb) {
   });
 
   describe('transferFrom()', function() {
-    it("Should reject tranfer from investor to zero address", async function () {
+    it("Should reject tranferring to redeem address", async function () {
       let _oldBalance = await token.balanceOf(investor);
       let _transAmount =  _oldBalance.minus(bn.tokens(1));
       await token.approve(purchaser, _transAmount, {from: investor}).should.be.fulfilled;
-      await registry.setAttribute(ZeroAddress, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
-      await token.transferFrom(investor, ZeroAddress, _transAmount, {from: purchaser}).should.be.rejected;
+      await registry.setAttribute(redeemAddress, regAtt.HAS_PASSED_KYC_AML, "Set HAS_PASSED_KYC_AML ON").should.be.fulfilled;
+      await token.transferFrom(investor, redeemAddress, _transAmount, {from: purchaser}).should.be.rejected;
     });
   });
 }

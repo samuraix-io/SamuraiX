@@ -240,13 +240,6 @@ function check(accounts, deployTokenCb) {
       (xferEvent.args.value).should.be.bignumber.equal(amount);
     });
 
-    it('should burn transferring token if investor transfers to zero address', async function() {
-      await token.mint(investor, bn.tokens(100)).should.be.fulfilled;
-      await token.transfer(0x0, bn.tokens(100), {from: investor}).should.be.fulfilled;
-      let _currentBalance = await token.balanceOf(investor);
-      _currentBalance.should.be.bignumber.equal(0);
-    });
-
     it('should reject transferring an amount of tokens which is greater than balance', async function() {
       await token.mint(investor, bn.tokens(100)).should.be.fulfilled;
       await token.transfer(purchaser, bn.tokens(101), {from: investor}).should.be.rejected;
