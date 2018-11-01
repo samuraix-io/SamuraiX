@@ -28,8 +28,7 @@ function check(accounts, deployTokenCb) {
   var systemWallet = accounts[7]
   var tokenName = "PATTokenMock";
   var tokenSymbol = "PATMock";
-  var linkDoc = 'https://drive.google.com/open?id=1ZaFg2XtGdTwnkvaj-Kra4cRW_ia6tvBY';
-  var fixedLinkDoc = 'https://drive.google.com/open?id=1JYpdAqubjvHvUuurwX7om0dDcA5ycRhc';
+  var publicDoc = 'http://bit.ly/2R5TE0T';
 
   beforeEach(async function () {
     oldToken = await deployTokenCb();
@@ -52,7 +51,7 @@ function check(accounts, deployTokenCb) {
   describe('delegateToNewContract()', function() {
     beforeEach(async function () {
       let _newTotalSupply = await oldToken.totalSupply();
-      newToken = await PATTokenMock.new(tokenName, tokenSymbol, fixedLinkDoc, linkDoc, systemWallet, _newTotalSupply);
+      newToken = await PATTokenMock.new(tokenName, tokenSymbol, publicDoc, systemWallet, _newTotalSupply);
     });
 
     it ('Should allow owner to delegate', async function() {
@@ -168,7 +167,7 @@ function check(accounts, deployTokenCb) {
     beforeEach(async function () {
       await oldToken.mint(purchaser, balanceOldToken).should.be.fulfilled;
       let _newTotalSupply = await oldToken.totalSupply();
-      newToken = await PATTokenMock.new(tokenName, tokenSymbol, fixedLinkDoc, linkDoc, systemWallet, _newTotalSupply);
+      newToken = await PATTokenMock.new(tokenName, tokenSymbol, publicDoc, systemWallet, _newTotalSupply);
 
       await oldToken.reclaimContract(balanceSheet.address, {from : owner});
       await balanceSheet.claimOwnership({from : owner}).should.be.fulfilled;

@@ -8,38 +8,30 @@ import "./access/Manageable.sol";
  * @dev Stores information about a specified real asset.
  */
 contract AssetInfo is Manageable {
-  string public fixedDocsLink;
-  string public varDocsLink;
+  string public publicDocument;
 
   /**
    * Event for updated running documents logging.
-   * @param token Token associated with this asset.
-   * @param oldLink Old link.
    * @param newLink New link.
    */
-  event UpdateRunningDocuments(
-    address token,
-    string oldLink,
+  event UpdateDocument(
     string newLink
   );
 
   /**
-   * @param _fixedDocsLink A link to a zip file containing fixed legal documents of the asset.
-   * @param _varDocsLink A link to a zip file containing running documents of the asset.
+   * @param _publicDocument A link to a zip file containing running documents of the asset.
    */
-  constructor(string _fixedDocsLink, string _varDocsLink) public {
-    fixedDocsLink = _fixedDocsLink;
-    varDocsLink = _varDocsLink;
+  constructor(string _publicDocument) public {
+    publicDocument = _publicDocument;
   }
 
   /**
    * @dev Updates information about where to find new running documents of this asset.
    * @param _link A link to a zip file containing running documents of the asset.
    */
-  function changeRunningDocuments(string _link) public onlyManager {
-    string memory _old = varDocsLink;
-    varDocsLink = _link;
+  function setPublicDocument(string _link) public onlyManager {
+    publicDocument = _link;
 
-    emit UpdateRunningDocuments(this, _old, varDocsLink);
+    emit UpdateDocument(publicDocument);
   }
 }

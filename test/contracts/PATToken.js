@@ -31,8 +31,7 @@ contract('PATToken', function (accounts) {
 
   let tokenName = "RAX Mt.Fuji";
   let tokenSymbol = "FUJI";
-  let varLinkDoc = 'http://bit.ly/2P9AWZ9';
-  let fixedLinkDoc = 'http://bit.ly/2R5TE0T';
+  let publicDoc = 'https://tinyurl.com/RAXFuji';
 
   before(async function () {
     token = await PATToken.deployed();
@@ -125,7 +124,7 @@ contract('PATToken', function (accounts) {
   });
 
   async function deploy() {
-    var _token = await PATToken.new(tokenName, tokenSymbol, fixedLinkDoc, varLinkDoc, systemWallet);
+    var _token = await PATToken.new(tokenName, tokenSymbol, publicDoc, systemWallet);
     return _token;
   }
 

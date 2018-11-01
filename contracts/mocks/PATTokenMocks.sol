@@ -44,13 +44,12 @@ contract PATTokenMock is Contactable, AssetInfo, BurnableExToken, CanDelegateTok
   constructor(
     string _name,
     string _symbol,
-    string _fixedDocsLink,
-    string _varDocsLink,
+    string _publicDocument,
     address _wallet,
     uint256 _totalSupply
   )
     public
-    AssetInfo(_fixedDocsLink, _varDocsLink)
+    AssetInfo(_publicDocument)
     TokenWithFees(_wallet)
   {
     name = _name;

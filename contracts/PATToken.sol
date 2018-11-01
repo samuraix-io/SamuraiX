@@ -43,12 +43,11 @@ contract PATToken is Contactable, AssetInfo, BurnableExToken, CanDelegateToken, 
   constructor(
     string _name,
     string _symbol,
-    string _fixedDocsLink,
-    string _varDocsLink,
+    string _publicDocument,
     address _wallet
   )
     public
-    AssetInfo(_fixedDocsLink, _varDocsLink)
+    AssetInfo(_publicDocument)
     TokenWithFees(_wallet)
   {
     name = _name;

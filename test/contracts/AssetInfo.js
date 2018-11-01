@@ -21,33 +21,31 @@ function check(accounts, deployTokenCb) {
     await token.setRegistry(registry.address, {from : owner}).should.be.fulfilled;
   })
 
-  describe('changeRunningDocuments()', function() {
+  describe('setPublicDocument()', function() {
     it("should allow manager to change running document", async function (){
       let _newRunningDoc = "http://bit.ly/2R5TE0T";
-      let _oldRunningDoc = await token.varDocsLink();
+      let _oldRunningDoc = await token.publicDocument();
       assert.notEqual(_oldRunningDoc, _newRunningDoc);
 
-      await token.changeRunningDocuments(_newRunningDoc, {from : manager}).should.be.fulfilled;
-      let _currRunningDoc = await token.varDocsLink();
+      await token.setPublicDocument(_newRunningDoc, {from : manager}).should.be.fulfilled;
+      let _currRunningDoc = await token.publicDocument();
       assert.equal(_currRunningDoc, _newRunningDoc);
     });
 
     it("should reject non-manager to change running document", async function (){
       let _newRunningDoc = "http://bit.ly/2R5TE0T";
-      await token.changeRunningDocuments(_newRunningDoc, {from : otherUser}).should.be.rejected;
+      await token.setPublicDocument(_newRunningDoc, {from : otherUser}).should.be.rejected;
     });
 
-    it("changeRunningDocuments() logs events", async function () {
+    it("should log event", async function () {
       let _newRunningDoc = "http://bit.ly/2R5TE0T";
-      let _oldRunningDoc = await token.varDocsLink();
+      let _oldRunningDoc = await token.publicDocument();
       assert.notEqual(_oldRunningDoc, _newRunningDoc);
 
-      const {logs} = await token.changeRunningDocuments(_newRunningDoc, {from : manager}).should.be.fulfilled;
-      const changeRunningDocEvent = logs.find(e => e.event === 'UpdateRunningDocuments');
-      changeRunningDocEvent.should.exist;
-      assert.equal(changeRunningDocEvent.args.token, token.address);
-      assert.equal(changeRunningDocEvent.args.oldLink, _oldRunningDoc)
-      assert.equal(changeRunningDocEvent.args.newLink, _newRunningDoc)
+      const {logs} = await token.setPublicDocument(_newRunningDoc, {from : manager}).should.be.fulfilled;
+      const event = logs.find(e => e.event === 'UpdateDocument');
+      event.should.exist;
+      assert.equal(event.args.newLink, _newRunningDoc)
     });
   });
 }
