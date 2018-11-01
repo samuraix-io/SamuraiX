@@ -100,10 +100,6 @@ function check(accounts, deployTokenCb) {
         await token.mint(investor, bn.tokens(100));
         (await token.getTheNumberOfHolders()).should.be.bignumber.equal(2);
       });
-
-      it("should not be called by non-owner", async function () {
-        await token.getTheNumberOfHolders({from: investor}).should.be.rejected;
-      });
     });
 
     describe('getHolder()', function() {
@@ -111,9 +107,6 @@ function check(accounts, deployTokenCb) {
         await token.mint(owner, bn.tokens(1000));
         await token.mint(investor, bn.tokens(100));
         (await token.getHolder(1)).should.be.equal(investor);
-      });
-      it("should not be called by non-owner", async function () {
-        await token.getHolder({from: investor}).should.be.rejected;
       });
     });
   });
