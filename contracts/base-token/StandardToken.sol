@@ -58,6 +58,14 @@ contract StandardToken is ClaimableEx, NoOwnerEx, ERC20 {
     return true;
   }
 
+  function getTheNumberOfHolders() public view returns (uint256) {
+    return balances.getTheNumberOfHolders();
+  }
+
+  function getHolder(uint256 _index) public view returns (address) {
+    return balances.getHolder(_index);
+  }
+
   /**
    * @dev Transfer token for a specified address
    * @param _to The address to transfer to.

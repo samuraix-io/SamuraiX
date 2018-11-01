@@ -2,7 +2,6 @@ pragma solidity ^0.4.24;
 
 import './access/Manageable.sol';
 import './base-token/BurnableToken.sol';
-import './TraceableToken.sol';
 
 
 /**
@@ -10,7 +9,7 @@ import './TraceableToken.sol';
  * @dev Extension for the BurnableToken contract, to support
  * some manager to enforce burning all tokens of all holders.
  **/
-contract BurnableExToken is Manageable, BurnableToken, TraceableToken {
+contract BurnableExToken is Manageable, BurnableToken {
 
   /**
    * @dev Burns all remaining tokens of all holders.
