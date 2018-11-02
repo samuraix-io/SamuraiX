@@ -90,6 +90,20 @@ function check(accounts, deployTokenCb) {
       _purchaserBalance.should.be.bignumber.equal(balanceOldToken);
     });
 
+    it('getTheNumberOfHolders() should return number of Holder', async function() {
+      let _firstNumHol = await oldToken.getTheNumberOfHolders().should.be.fulfilled;
+      await oldToken.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _secNumHol = await oldToken.getTheNumberOfHolders().should.be.fulfilled;
+      _secNumHol.should.be.bignumber.equal(_firstNumHol.plus(1));
+    });
+
+    it('getHolder() should return the Holder', async function() {
+      await oldToken.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _numHol = await oldToken.getTheNumberOfHolders().should.be.fulfilled;
+      let holder = await oldToken.getHolder(_numHol.minus(1)).should.be.fulfilled;
+      assert.equal(holder, investor);
+    });
+
     it('approve() should update allowance of oldToken', async function() {
       let _amount = bn.tokens(100);
       await oldToken.approve(purchaser, _amount, {from: investor}).should.be.fulfilled;
@@ -193,6 +207,20 @@ function check(accounts, deployTokenCb) {
 
       let _purchaserBalance = await oldToken.balanceOf(purchaser).should.be.fulfilled;
       _purchaserBalance.should.be.bignumber.equal(balanceNewToken.plus(balanceOldToken));
+    });
+
+    it('getTheNumberOfHolders() should return number of Holder', async function() {
+      let _firstNumHol = await oldToken.getTheNumberOfHolders().should.be.fulfilled;
+      await newToken.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _secNumHol = await oldToken.getTheNumberOfHolders().should.be.fulfilled;
+      _secNumHol.should.be.bignumber.equal(_firstNumHol.plus(1));
+    });
+
+    it('getHolder() should return the Holder', async function() {
+      await newToken.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _numHol = await oldToken.getTheNumberOfHolders().should.be.fulfilled;
+      let holder = await oldToken.getHolder(_numHol.minus(1)).should.be.fulfilled;
+      assert.equal(holder, investor);
     });
 
     it('approval() should update allowance of newToken', async function() {

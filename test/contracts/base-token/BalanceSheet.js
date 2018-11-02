@@ -13,6 +13,9 @@ contract('BalanceSheet', function (accounts) {
   const owner = accounts[0];
   const user = accounts[1];
   const otherUser = accounts[2];
+  const secondUser = accounts[3];
+  const thirdUser = accounts[4];
+  const fourthUser = accounts[5];
 
   before(async function () {
     balanceSheetContract = await BalanceSheet.deployed();
@@ -102,4 +105,75 @@ contract('BalanceSheet', function (accounts) {
 
   });
 
+  describe('setBalanceBatch()', function() {
+    it('Should allow owner to set balance for multiple users', async function() {
+      let _firstUserBalanceBefore = await balanceSheetContract.balanceOf(user).should.be.fulfilled;
+      let _secondUserBalanceBefore = await balanceSheetContract.balanceOf(secondUser).should.be.fulfilled;
+      let _thirdUserBalanceBefore = await balanceSheetContract.balanceOf(thirdUser).should.be.fulfilled;
+      let _fourthUserBalanceBefore = await balanceSheetContract.balanceOf(fourthUser).should.be.fulfilled
+
+      let _listAdds = [user, secondUser, thirdUser, fourthUser];
+      let _listVals = [bn.tokens(1), bn.tokens(2), bn.tokens(3), bn.tokens(4)];
+
+      await balanceSheetContract.setBalanceBatch(_listAdds, _listVals, {from : owner}).should.be.fulfilled;
+    });
+
+    it('Should reject non-owner to reduce balance for user', async function() {
+      let _firstUserBalanceBefore = await balanceSheetContract.balanceOf(user).should.be.fulfilled;
+      let _secondUserBalanceBefore = await balanceSheetContract.balanceOf(secondUser).should.be.fulfilled;
+      let _thirdUserBalanceBefore = await balanceSheetContract.balanceOf(thirdUser).should.be.fulfilled;
+      let _fourthUserBalanceBefore = await balanceSheetContract.balanceOf(fourthUser).should.be.fulfilled
+
+      let _listAdds = [user, secondUser, thirdUser, fourthUser];
+      let _listVals = [bn.tokens(1), bn.tokens(2), bn.tokens(3), bn.tokens(4)];
+
+      await balanceSheetContract.setBalanceBatch(_listAdds, _listVals, {from : otherUser}).should.be.rejected;
+    });
+
+    it('Should increase balace of list user', async function() {
+      let _firstUserBalanceBefore = await balanceSheetContract.balanceOf(user).should.be.fulfilled;
+      let _secondUserBalanceBefore = await balanceSheetContract.balanceOf(secondUser).should.be.fulfilled;
+      let _thirdUserBalanceBefore = await balanceSheetContract.balanceOf(thirdUser).should.be.fulfilled;
+      let _fourthUserBalanceBefore = await balanceSheetContract.balanceOf(fourthUser).should.be.fulfilled
+
+      let _listAdds = [user, secondUser, thirdUser, fourthUser];
+      let _listVals = [_firstUserBalanceBefore.plus(bn.tokens(1)),
+                      _secondUserBalanceBefore.plus(bn.tokens(2)),
+                      _thirdUserBalanceBefore.plus(bn.tokens(3)),
+                      _fourthUserBalanceBefore.plus(bn.tokens(4))];
+
+      await balanceSheetContract.setBalanceBatch(_listAdds, _listVals, {from : owner}).should.be.fulfilled;
+
+      let _firstUserBalanceAfter = await balanceSheetContract.balanceOf(user).should.be.fulfilled;
+      let _secondUserBalanceAfter = await balanceSheetContract.balanceOf(secondUser).should.be.fulfilled;
+      let _thirdUserBalanceAfter = await balanceSheetContract.balanceOf(thirdUser).should.be.fulfilled;
+      let _fourthUserBalanceAfter = await balanceSheetContract.balanceOf(fourthUser).should.be.fulfilled
+
+      _firstUserBalanceAfter.should.be.bignumber.equal(_listVals[0]);
+      _secondUserBalanceAfter.should.be.bignumber.equal(_listVals[1]);
+      _thirdUserBalanceAfter.should.be.bignumber.equal(_listVals[2]);
+      _fourthUserBalanceAfter.should.be.bignumber.equal(_listVals[3]);
+    });
+  });
+
+  describe('getTheNumberOfHolders()', function() {
+    it('Should return number of holders', async function() {
+      let _firstNumHol = await balanceSheetContract.getTheNumberOfHolders();
+      let _newAdds = accounts[6];
+      await balanceSheetContract.setBalance(_newAdds, bn.tokens(1), {from : owner}).should.be.fulfilled;
+      let _secNumHol = await balanceSheetContract.getTheNumberOfHolders().should.be.fulfilled;
+
+      _secNumHol.should.be.bignumber.equal(_firstNumHol.plus(1));
+    });
+  });
+
+  describe('getHolder()', function() {
+    it('Should allow get address via index', async function() {
+      let _newAdds = accounts[6];
+      await balanceSheetContract.setBalance(_newAdds, bn.tokens(1), {from : owner}).should.be.fulfilled;
+      let _numHol = await balanceSheetContract.getTheNumberOfHolders().should.be.fulfilled;
+      let holder = await balanceSheetContract.getHolder(_numHol.minus(1)).should.be.fulfilled;
+      assert.equal(holder, _newAdds);
+    });
+  });
 })

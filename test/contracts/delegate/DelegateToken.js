@@ -233,6 +233,24 @@ function check(accounts, deployTokenCb) {
       await token.delegateBurn(investor, bn.tokens(10), 'delegateBurn', {from: non_mandator}).should.be.rejected;
     });
   });
+
+  describe('delegateGetTheNumberOfHolders()', function() {
+    it('Should return number of holder', async function() {
+      let _firstNumHol = await token.getTheNumberOfHolders().should.be.fulfilled;
+      await token.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _secNumHol = await token.getTheNumberOfHolders().should.be.fulfilled;
+      _secNumHol.should.be.bignumber.equal(_firstNumHol.plus(1));
+    });
+  });
+
+  describe('delegateGetHolder()', function() {
+    it('Should return the Holder', async function() {
+      await token.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _numHol = await token.getTheNumberOfHolders().should.be.fulfilled;
+      let holder = await token.delegateGetHolder(_numHol.minus(1)).should.be.fulfilled;
+      assert.equal(holder, investor);
+    });
+  });
 }
 
 module.exports.check = check;

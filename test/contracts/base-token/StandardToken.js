@@ -38,6 +38,24 @@ function check(accounts, deployTokenCb) {
     });
   });
 
+  describe('getTheNumberOfHolders()', function() {
+    it('Should return number of holders', async function() {
+      let _firstNumHol = await token.getTheNumberOfHolders().should.be.fulfilled;
+      await token.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _secNumHol = await token.getTheNumberOfHolders().should.be.fulfilled;
+      _secNumHol.should.be.bignumber.equal(_firstNumHol.plus(1));
+    });
+  });
+
+  describe('getHolder()', function() {
+    it('Should allow get address via index', async function() {
+      await token.mint(investor, bn.tokens(1)).should.be.fulfilled;
+      let _numHol = await token.getTheNumberOfHolders().should.be.fulfilled;
+      let holder = await token.getHolder(_numHol.minus(1)).should.be.fulfilled;
+      assert.equal(holder, investor);
+    });
+  });
+
   describe('approve()', function() {
     it('should allow to approve tokens', async function() {
       await token.approve(purchaser, bn.tokens(100), {from: investor}).should.be.fulfilled;
